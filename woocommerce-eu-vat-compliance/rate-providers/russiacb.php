@@ -2,7 +2,7 @@
 
 if (!defined('WC_VAT_COMPLIANCE_DIR')) die('No direct access.');
 
-// Purpose: Official Central Bank of the Russian Federation exchange rates: http://www.cbr.ru/eng/
+// Purpose: Official Central Bank of the Russian Federation exchange rates: https://www.cbr.ru/eng/
 
 // Methods: info(), convert($from_currency, $to_currency, $amount, $the_time = false), settings_fields(), test()
 
@@ -12,8 +12,7 @@ if (!class_exists('WC_VAT_Compliance_Rate_Provider_base_xml')) require_once(WC_V
 if (1==1):
 class WC_VAT_Compliance_Rate_Provider_russiacb extends WC_VAT_Compliance_Rate_Provider_base_xml {
 
-	# Currently, https just directs back to http
-	protected $getbase = 'http://www.cbr.ru/scripts/XML_daily.asp';
+	protected $getbase = 'https://www.cbr.ru/scripts/XML_daily.asp';
 
 	protected $rate_base_currency = 'RUB';
 
@@ -25,7 +24,7 @@ class WC_VAT_Compliance_Rate_Provider_russiacb extends WC_VAT_Compliance_Rate_Pr
 	public function info() {
 		return array(
 			'title' => __('The Central Bank of the Russian Federation', 'woocommerce-eu-vat-compliance'),
-			'url' => 'http://www.cbr.ru',
+			'url' => 'https://www.cbr.ru',
 			'description' => __('Official exchange rates from the Bank of Russia.', 'woocommerce-eu-vat-compliance')
 		);
 	}

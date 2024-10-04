@@ -205,16 +205,7 @@ class WC_EU_VAT_Compliance {
 			'shipping_phone'      => $customer->get_shipping_phone(),
 		);
 
-		$form_data = array();
-
-		foreach ($shipping_address as $shipping_key => $shipping_value) {
-			$form_data[$shipping_key] = $shipping_value;
-		}
-
-		foreach ($billing_address as $billing_key => $billing_value) {
-			$form_data[$billing_key] = $billing_value;
-		}
-
+		$form_data = array_merge($shipping_address, $billing_address);
 		$vat_self_certify = $this->wc->session->get('vat_self_certify');
 		$ship_to_different_address = $this->wc->session->get('ship_to_different_address');
 		$vat_number = $this->wc->session->get('vat_number');
@@ -230,7 +221,7 @@ class WC_EU_VAT_Compliance {
 		$this->wc->session->set('vat_country_widget_choice', $country);
 
 		// Check if the VAT number has validity. if the VAT number was stored previously.
-		if (!empty($vat_number)) {
+		if (!empty($vat_number) && $vat_controller) {
 			$check_result = $vat_controller->check_vat_number_validity($country, $vat_number, false, true);
 
 			if (empty($check_result['vat_number_accepted'])) {
@@ -250,7 +241,7 @@ class WC_EU_VAT_Compliance {
 		$form_data = http_build_query($form_data, '', '&');
 
 		// Call this method to update customer vat country location for updating vat price. The ajax_update_checkout_totals is called on 'woocommerce_checkout_update_order_review' hook so used this method.
-		$vat_controller->ajax_update_checkout_totals($form_data);
+		if ($vat_controller) $vat_controller->ajax_update_checkout_totals($form_data);
 	}
 	
 	/**

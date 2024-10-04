@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 4.7
 Tested up to: 6.6
-Stable tag: 1.31.0
+Stable tag: 1.31.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
 Donate link: https://david.dw-perspective.org.uk/donate
@@ -128,6 +128,14 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.31.1 - 2024-10-04 =
+
+* FIX: Prevent unwanted VAT number/address substitutions happening on the block checkout page
+* FIX: Avoid using an unavailable variable in the block checkout
+* TWEAK: Prevent an unwanted JavaScript console message
+* TWEAK: Update Finnish standard VAT rate (now 25.5%)
+* TWEAK: Update URL for Russian Central Bank's exchange rates
 
 = 1.31.0 - 2024-08-27 =
 
@@ -1659,4 +1667,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.31.0 - Block checkout support. Fix a cart total caching issue. Requires WooCommerce 4.5+. A recommended update for all.
+* 1.31.1 - Block checkout support updates. Exchange/VAT rate updates. A recommended update for all.
