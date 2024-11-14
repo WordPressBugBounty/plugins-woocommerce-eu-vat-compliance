@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 4.7
 Tested up to: 6.7
-Stable tag: 1.31.2
+Stable tag: 1.31.3
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
 Donate link: https://david.dw-perspective.org.uk/donate
@@ -129,10 +129,11 @@ This is not strictly an EU/UK VAT compliance issue, and as such, does not come u
 
 == Changelog ==
 
-= 1.31.2 - 2024-11-14 =
+= 1.31.3 - 2024-11-14 =
 
 * TWEAK: Resolve dynamic property deprecations in WC_VAT_Compliance_Preselect_Country
 * TWEAK: Resolve premature language domain loading in WP 6.7
+* FIX: Fix a regression in order recording in the short-lived 1.31.2
 
 = 1.31.1 - 2024-10-04 =
 
@@ -1672,4 +1673,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.31.2 - Resolve a couple of deprecations. A recommended update for all.
+* 1.31.3 - Resolve a couple of deprecations and a regression in 1.31.2. A recommended update for all.

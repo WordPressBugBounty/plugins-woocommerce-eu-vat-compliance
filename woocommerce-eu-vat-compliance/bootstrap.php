@@ -1155,7 +1155,6 @@ class WC_EU_VAT_Compliance {
 				$vat_paid = $order->get_meta('vat_compliance_vat_paid', true);
 			}
 			if (!empty($vat_paid)) {
-				$vat_paid = unserialize($vat_paid, array('allowed_classes' => false));
 				// If by_rates is not set, then we need to update the version of the data by including that data asap
 				if (isset($vat_paid['by_rates'])) return $vat_paid;
 			}
