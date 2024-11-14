@@ -416,17 +416,17 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 				$refunded_shipping_tax_amount = 0;
 
 				if (!empty($any_tax_refunds_exist)) {
-					// This loop is adapted from WC_Order::get_total_tax_refunded_by_rate_id() (WC 2.3+)
+					
 					foreach ($order->get_refunds() as $refund) {
 						foreach ($refund->get_items('tax') as $refunded_item) {
-							if (isset( $refunded_item['rate_id']) && $refunded_item['rate_id'] == $rate_id) {
+							if (isset($refunded_item['rate_id']) && $refunded_item['rate_id'] == $rate_id) {
 								$refunded_tax_amount += abs( $refunded_item['tax_amount'] );
 								$refunded_shipping_tax_amount += abs($refunded_item['shipping_tax_amount']);
 							}
 						}
 						foreach ($refund->get_items('shipping') as $refunded_item) {
 							if (!isset($refunded_item['taxes'])) continue;
-							$tax_data = empty($refunded_item['taxes']) ? array() : unserialize($refunded_item['taxes'], array('allowed_classes' => false));
+							$tax_data = empty($refunded_item['taxes']) ? array() : $refunded_item['taxes'];
 							// Was the current tax rate ID used on this item?
 							if (!empty($tax_data[$rate_id])) {
 								// Minus, because we want to end up with a positive amount, so that all the $refunded_ variables are consistent.
@@ -437,7 +437,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 						}
 						foreach ($refund->get_items() as $refunded_item) {
 							if (!isset($refunded_item['line_tax_data'])) continue;
-							$tax_data = empty($refunded_item['line_tax_data']) ? array() : unserialize($refunded_item['line_tax_data'], array('allowed_classes' => false));
+							$tax_data = empty($refunded_item['line_tax_data']) ? array() : $refunded_item['line_tax_data'];
 							// Was the current tax rate ID used on this item?
 							if (!empty( $tax_data['total'][$rate_id] )) {
 								// Minus, because we want to end up with a positive amount, so that all the $refunded_ variables are consistent.
