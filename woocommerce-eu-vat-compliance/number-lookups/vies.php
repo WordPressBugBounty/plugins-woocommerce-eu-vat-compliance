@@ -181,6 +181,7 @@ class WC_VAT_Number_Lookup_Service_vies extends WC_VAT_Number_Lookup_Service {
 			$info = __("The member state's VIES service is currently unavailable.", 'woocommerce-eu-vat-compliance'); 
 			break;
 			default:
+			// translators: a fault code
 			$info = sprintf(__('Fault code: %s', 'woocommerce-eu-vat-compliance'), $fault_code); 
 			break;
 		}

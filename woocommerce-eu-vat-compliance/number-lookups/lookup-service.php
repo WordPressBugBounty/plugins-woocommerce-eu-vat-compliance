@@ -40,6 +40,7 @@ abstract class WC_VAT_Number_Lookup_Service {
 	 * @return Array
 	 */
 	protected function not_configured_response() {
+		// translators: name of the service
 		return array('validated' => false, 'error_code' => 'not_configured', 'error_message' => sprintf(__('The %s service cannot be used for VAT number lookups because the site owner has not configured it.', 'woocommerce-eu-vat-compliance'), $this->get_service_name())); 
 	}
 	
@@ -78,8 +79,8 @@ abstract class WC_VAT_Number_Lookup_Service {
 		$name = $this->get_service_name();
 		$description = $this->get_service_description();
 		$full_description = $description ? $name.' ('.$description.')' : $name;
-	
-		printf(__('%s does not require any authentication (i.e. is publicly available).', 'woocommerce-eu-vat-compliance'), $full_description);
+		// translators: name of the service
+		printf(esc_html__('%s does not require any authentication (i.e. is publicly available).', 'woocommerce-eu-vat-compliance'), $full_description);
 	}
 	
 }

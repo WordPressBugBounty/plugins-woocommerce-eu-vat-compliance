@@ -1,8 +1,8 @@
 === EU/UK VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
 Requires at least: 4.7
-Tested up to: 6.6
-Stable tag: 1.31.1
+Tested up to: 6.7
+Stable tag: 1.31.2
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
 Donate link: https://david.dw-perspective.org.uk/donate
@@ -128,6 +128,11 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.31.2 - 2024-11-14 =
+
+* TWEAK: Resolve dynamic property deprecations in WC_VAT_Compliance_Preselect_Country
+* TWEAK: Resolve premature language domain loading in WP 6.7
 
 = 1.31.1 - 2024-10-04 =
 
@@ -1667,4 +1672,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.31.1 - Block checkout support updates. Exchange/VAT rate updates. A recommended update for all.
+* 1.31.2 - Resolve a couple of deprecations. A recommended update for all.

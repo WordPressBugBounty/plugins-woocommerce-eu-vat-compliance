@@ -67,11 +67,12 @@ class WC_EU_VAT_Country_PreSelect_Widget extends WP_Widget {
 		$include_which_countries = empty($instance['include_which_countries']) ? 'all' : $instance['include_which_countries'];
 
 		if (defined('WOOCOMMERCE_VERSION') && version_compare(WOOCOMMERCE_VERSION, '2.2.9', '<')) {
-			echo '<p style="color: red">'.sprintf(__('Due to limitations in earlier versions, this widget requires WooCommerce %s or later, and will not work on your version (%s).', 'woocommerce-eu-vat-compliance'), '2.2.9', WOOCOMMERCE_VERSION).'</p>';
+			// translators: version numbers
+			echo '<p style="color: red">'.esc_html(sprintf(__('Due to limitations in earlier versions, this widget requires WooCommerce %1$s or later, and will not work on your version (%2$s).', 'woocommerce-eu-vat-compliance'), '2.2.9', WOOCOMMERCE_VERSION)).'</p>';
 		}
 
 		?>
-		<p><strong><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'woocommerce-eu-vat-compliance');?></strong><br><input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" /></label></p>
+		<p><strong><label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php esc_html_e('Title:', 'woocommerce-eu-vat-compliance');?></strong><br><input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>" name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text" value="<?php echo esc_attr($title); ?>"></label></p>
 
 		<p><strong><label for="<?php echo $this->get_field_id('explanation'); ?>"><?php _e('Explanatory text (HTML accepted):', 'woocommerce-eu-vat-compliance');?></strong><br><textarea class="widefat" id="<?php echo $this->get_field_id('explanation'); ?>" name="<?php echo $this->get_field_name('explanation'); ?>"><?php echo htmlentities($explanation); ?></textarea> </label></p>
 		

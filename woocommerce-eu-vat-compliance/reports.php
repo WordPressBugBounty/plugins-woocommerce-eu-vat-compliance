@@ -176,7 +176,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			$sql = $this->get_items_sql($page_start, $page_size, $start_date, $end_date, $status);
 			if (empty($sql)) break;
 			if (defined('WC_VAT_REPORTING_LOG_QUERIES') && WC_VAT_REPORTING_LOG_QUERIES) error_log("WC_VAT_REPORTING_LOG_QUERIES get_items_data(page_start=$page_start, page_size=$page_size): ".preg_replace('/(\t|\n|  )/', ' ', $sql));
-			$results = $wpdb->get_results($sql);
+			$results = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			if (!empty($results)) {
 				$page++;
 
@@ -202,7 +202,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 					if ('_line_total' == $r->k) {
 						$current_total = $r->v;
 					} elseif ('_line_tax_data' == $r->k) {
-						$current_line_tax_data = maybe_unserialize($r->v);
+						$current_line_tax_data = empty($r->v) ? array() : unserialize($r->v, array('allowed_classes' => false));
 						// Don't skip - we want to know that some data was there (detecting pre-WC2.2 orders)
 // 						if (empty($current_line_tax_data['total'])) continue;
 					} elseif ('_line_tax' == $r->k) {
@@ -533,7 +533,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 		if (!$sql) return array();
 
 		if (defined('WC_VAT_REPORTING_LOG_QUERIES') && WC_VAT_REPORTING_LOG_QUERIES) error_log("WC_VAT_REPORTING_LOG_QUERIES get_refund_report_results(): ".preg_replace('/(\t|\n|  )/', ' ', $sql));
-		$results = $wpdb->get_results($sql);
+		$results = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 		if (!is_array($results)) return array();
 
 		$current_order_item_id = false;
@@ -725,7 +725,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			$address_sql .= ")";
 
 			if (defined('WC_VAT_REPORTING_LOG_QUERIES') && WC_VAT_REPORTING_LOG_QUERIES) error_log("WC_VAT_REPORTING_LOG_QUERIES convert_hpos_results_format_to_post(): ".preg_replace('/(\t|\n|  )/', ' ', $address_sql));
-			$address_results = $wpdb->get_results($address_sql);
+			$address_results = $wpdb->get_results($address_sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			if (!is_array($address_results)) continue;
 
 			foreach ($address_results as $address_result) {
@@ -828,7 +828,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			if (empty($sql)) break;
 
 			if (defined('WC_VAT_REPORTING_LOG_QUERIES') && WC_VAT_REPORTING_LOG_QUERIES) error_log("WC_VAT_REPORTING_LOG_QUERIES get_report_results(page_start=$page_start, page_size=$page_size): ".preg_replace('/(\t|\n|  )/', ' ', $sql));
-			$results = $wpdb->get_results($sql);
+			$results = $wpdb->get_results($sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			$remove_order_id = false;
 
 			if (empty($results) || count($results) < $page_size) {
@@ -867,7 +867,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 
 				switch ($res->meta_key) {
 					case 'vat_compliance_country_info':
-						$cinfo = maybe_unserialize($res->meta_value);
+						$cinfo = empty($res->meta_value) ? array() : unserialize($res->meta_value, array('allowed_classes' => false));
 						if ($print_as_csv) $normalised_results[$order_status][$order_id]['vat_compliance_country_info'] = $cinfo;
 						$vat_country = empty($cinfo['taxable_address']) ? '??' : $cinfo['taxable_address'];
 						if (!empty($vat_country[0])) {
@@ -881,7 +881,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 						if (!empty($vat_country[1])) $normalised_results[$order_status][$order_id]['taxable_state'] = $vat_country[1];
 					break;
 					case 'vat_compliance_vat_paid':
-						$vat_paid = maybe_unserialize($res->meta_value);
+						$vat_paid = empty($res->meta_value) ? array() : unserialize($res->meta_value, array('allowed_classes' => false));
 						if (is_array($vat_paid)) {
 							// Trying to minimise memory usage for large shops
 							unset($vat_paid['currency']);
@@ -924,7 +924,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 						$normalised_results[$order_status][$order_id]['vatno_validated'] = $res->meta_value;
 					break;
 					case 'wceuvat_conversion_rates':
-						$rates = maybe_unserialize($res->meta_value);
+						$rates = empty($res->meta_value) ? array() : unserialize($res->meta_value, array('allowed_classes' => false));
 						$normalised_results[$order_status][$order_id]['conversion_rates'] = isset($rates['rates']) ? $rates['rates'] : array();
 						$normalised_results[$order_status][$order_id]['conversion_provider'] = isset($rates['meta']['provider']) ? $rates['meta']['provider'] : $default_rates_provider;
 					break;
@@ -1097,7 +1097,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			$get_order_statuses_sql .= " WHERE orders.ID IN (".implode(',', $order_ids_with_refunds).")";
 			
 			if (defined('WC_VAT_REPORTING_LOG_QUERIES') && WC_VAT_REPORTING_LOG_QUERIES) error_log("WC_VAT_REPORTING_LOG_QUERIES get_tabulated_results(): ".preg_replace('/(\t|\n|  )/', ' ', $get_order_statuses_sql));
-			$order_status_results = $wpdb->get_results($get_order_statuses_sql);
+			$order_status_results = $wpdb->get_results($get_order_statuses_sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			if (is_array($order_status_results)) {
 				foreach ($order_status_results as $r) {
 					if (empty($r->order_id)) continue;

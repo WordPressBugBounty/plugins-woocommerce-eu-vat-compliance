@@ -426,9 +426,9 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 						}
 						foreach ($refund->get_items('shipping') as $refunded_item) {
 							if (!isset($refunded_item['taxes'])) continue;
-							$tax_data = maybe_unserialize($refunded_item['taxes']);
+							$tax_data = empty($refunded_item['taxes']) ? array() : unserialize($refunded_item['taxes'], array('allowed_classes' => false));
 							// Was the current tax rate ID used on this item?
-							if ( !empty( $tax_data[$rate_id] )) {
+							if (!empty($tax_data[$rate_id])) {
 								// Minus, because we want to end up with a positive amount, so that all the $refunded_ variables are consistent.
 								$refunded_shipping_amount -= $refunded_item['cost'];
 								// Don't add it again here - it's already added above
@@ -437,9 +437,9 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 						}
 						foreach ($refund->get_items() as $refunded_item) {
 							if (!isset($refunded_item['line_tax_data'])) continue;
-							$tax_data = maybe_unserialize($refunded_item['line_tax_data']);
+							$tax_data = empty($refunded_item['line_tax_data']) ? array() : unserialize($refunded_item['line_tax_data'], array('allowed_classes' => false));
 							// Was the current tax rate ID used on this item?
-							if ( !empty( $tax_data['total'][$rate_id] )) {
+							if (!empty( $tax_data['total'][$rate_id] )) {
 								// Minus, because we want to end up with a positive amount, so that all the $refunded_ variables are consistent.
 								$refunded_item_amount -= $refunded_item['line_total'];
 							}
@@ -531,8 +531,10 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 				$symbol = get_woocommerce_currency_symbol($vat_paid['value_based_exemption']['currency']);
 				echo '<p>';
 				if (!empty($vat_paid['value_based_exemption']['based_upon']) && 'any_item_above' == $vat_paid['value_based_exemption']['based_upon']) {
+					// translators: a value
 					printf(__("Order was tax-exempt due to a destination value-based exemption rule; at least one item's value exceeded %s.", 'woocommerce-eu-vat-compliance'), htmlentities($symbol.' '.$value, ENT_COMPAT, null, false));	
 				} else {
+					// translators: a value
 					printf(__('Order was tax-exempt due to a destination value-based exemption rule; its value exceeded %s.', 'woocommerce-eu-vat-compliance'), htmlentities($symbol.' '.$value, ENT_COMPAT, null, false));
 				}
 				echo '</p>';
@@ -553,10 +555,12 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 			}
 
 			if ($valid_vat_number && 'false' !== $valid_vat_number && $vat_number_validated) {
-				echo '<p><strong>'.sprintf(__('Validated VAT number: %s', 'woocommerce-eu-vat-compliance'), '</strong>'.$vat_number)."</p>\n";
+				// translators: a VAT number
+				echo '<p><strong>'.sprintf(esc_html__('Validated VAT number: %s', 'woocommerce-eu-vat-compliance'), '</strong>'.$vat_number)."</p>\n";
 			} elseif ($vat_number && 'false' === $valid_vat_number) {
 				$status = __('entered, but invalid', 'woocommerce-eu-vat-compliance');
-				echo '<p><strong>'.sprintf(__('VAT number (%s): %s', 'woocommerce-eu-vat-compliance'), $status, '</strong>'.$vat_number)."</p>\n";
+				// translators: a status message and a VAT number
+				echo '<p><strong>'.sprintf(esc_html__('VAT number (%1$s): %1$s', 'woocommerce-eu-vat-compliance'), $status, '</strong>'.$vat_number)."</p>\n";
 			}
 
 			$vies_full_result = $order->get_meta('VIES Response', true);
@@ -598,18 +602,19 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 					
 					$lookup_service = is_object($region_object) ? $region_object->get_service_name() : $region;
 					
-					echo '<p><strong title="'.esc_attr($currency_title).'">'.sprintf(__('Lookup extended information (%s):', 'woocommerce-eu-vat-compliance'), $lookup_service)."</strong><br>\n";
+					// translators: name of a VAT number lookup service
+					echo '<p><strong title="'.esc_attr($currency_title).'">'.sprintf(esc_html__('Lookup extended information (%s):', 'woocommerce-eu-vat-compliance'), $lookup_service)."</strong><br>\n";
 					
-					if (!empty($resp['processingDate'])) echo __('Validated at:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['processingDate']).'<br>';
+					if (!empty($resp['processingDate'])) echo esc_html__('Validated at:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['processingDate']).'<br>';
 					
-					if (!empty($resp['consultationNumber'])) echo __('Request ID:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['consultationNumber']).'<br>';
+					if (!empty($resp['consultationNumber'])) echo esc_html__('Request ID:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['consultationNumber']).'<br>';
 					
 					if (!empty($resp['target']['name'])) {
-						echo __('Trader name:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['target']['name']).'<br>';
+						echo esc_html__('Trader name:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars($resp['target']['name']).'<br>';
 					}
 					
 					if (!empty($resp['target']['address'])) {
-						echo __('Trader address:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars(implode(', ', $resp['target']['address'])).'<br>';
+						echo esc_html__('Trader address:', 'woocommerce-eu-vat-compliance').' '.htmlspecialchars(implode(', ', $resp['target']['address'])).'<br>';
 					}
 				
 					echo '</p>';
@@ -635,7 +640,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 				echo '<br>';
 			}
 		} else {
-			echo __("VAT paid:", 'woocommerce-eu-vat-compliance').' '.__('Unknown', 'woocommerce-eu-vat-compliance')."<br>";
+			echo esc_html__("VAT paid:", 'woocommerce-eu-vat-compliance').' '.esc_html__('Unknown', 'woocommerce-eu-vat-compliance')."<br>";
 		}
 
 		/*
@@ -657,7 +662,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 
 			$source_description = isset($compliance->data_sources[$source]) ? $compliance->data_sources[$source] : __('Unknown', 'woocommerce-eu-vat-compliance');
 
-			echo '<span title="'.esc_attr(__('Raw information:', 'woocommerce-eu-vat-compliance').': '.print_r($country_info, true)).'">';
+			echo '<span title="'.esc_attr(__('Raw information:', 'woocommerce-eu-vat-compliance').': '.esc_html(print_r($country_info, true))).'">';
 
 			$countries = $compliance->wc->countries->countries;
 

@@ -73,6 +73,7 @@ class WC_EU_VAT_Compliance_Rates {
  		
  		$region_title = $vat_region->get_region_title('adjective');
  		
+		// translators: region title
 		$rate_description = sprintf(__('Add / Update VAT Rates (%s)', 'woocommerce-eu-vat-compliance'), $region_title);
 		
 		$region_countries = $vat_region->get_countries();
@@ -164,7 +165,7 @@ class WC_EU_VAT_Compliance_Rates {
 
 				<?php
 					$selector = 'a.remove_tax_rates';
-					$vat_descr_info = esc_attr(__('Note: for any tax you enter below to be recognised as VAT, its name will need to contain one of the following words or phrases:', 'woocommerce-eu-vat-compliance')).' '.WooCommerce_EU_VAT_Compliance()->get_vat_matches('html-printable').'. <a href="?page='.$_REQUEST['page'].'&tab=tax">'.esc_attr(__('You can configure this list in the tax options.', 'woocommerce-eu-vat-compliance')).'<a>';
+					$vat_descr_info = esc_attr(__('Note: for any tax you enter below to be recognised as VAT, its name will need to contain one of the following words or phrases:', 'woocommerce-eu-vat-compliance')).' '.WooCommerce_EU_VAT_Compliance()->get_vat_matches('html-printable').'. <a href="?page='.esc_attr(stripslashes($_REQUEST['page'])).'&tab=tax">'.esc_attr(__('You can configure this list in the tax options.', 'woocommerce-eu-vat-compliance')).'<a>';
 				?>
 
 				var known_rates = [ "<?php echo implode('", "', array_keys($this->known_rates)); ?>" ];

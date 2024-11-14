@@ -33,8 +33,8 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 			'tax_based_on' => __('Tax based upon', 'woocommerce-eu-vat-compliance'),
 			'tax_enabled' => __('Store has tax enabled', 'woocommerce-eu-vat-compliance'),
 			'rates_remote_fetch' => __('Current VAT rates can be fetched from network', 'woocommerce-eu-vat-compliance'),
-			'rates_exist_and_up_to_date' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('EU', 'woocomerce-eu-vat-compliance').')',
-			'rates_exist_and_up_to_date_uk' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('UK', 'woocomerce-eu-vat-compliance').')',
+			'rates_exist_and_up_to_date' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('EU', 'woocommerce-eu-vat-compliance').')',
+			'rates_exist_and_up_to_date_uk' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('UK', 'woocommerce-eu-vat-compliance').')',
 			'exchange_rates_exist_and_up_to_date' => __('Exchange rates care up-to-date', 'woocommerce-eu-vat-compliance'),
 			'zero_rates_class_exists' => __('Zero-rates tax class exists', 'woocommerce-eu-vat-compliance'),
 		);
@@ -116,9 +116,11 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		
 		$result = (defined('WOOCOMMERCE_VERSION') && version_compare(WOOCOMMERCE_VERSION, $minimum_supported_wc_version, '>='));
 		if ($result) {
+			// translators: a version number
 			$info = sprintf(__('Your WooCommerce version (%s) is supported by this plugin with all features.', 'woocommerce-eu-vat-compliance'), WOOCOMMERCE_VERSION);
 		} else {
-			$info = sprintf(__('Your WooCommerce version (%s) is lower than %s, which is the lowest supported version. You should upgrade WooCommerce to a supported version.', 'woocommerce-eu-vat-compliance'), WOOCOMMERCE_VERSION, $minimum_supported_wc_version);
+			// translators: version numbers
+			$info = sprintf(__('Your WooCommerce version (%1$s) is lower than %2$s, which is the lowest supported version. You should upgrade WooCommerce to a supported version.', 'woocommerce-eu-vat-compliance'), WOOCOMMERCE_VERSION, $minimum_supported_wc_version);
 		}
 		return $this->res($result, $info);
 	}
@@ -187,14 +189,14 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 			$tax_rate_classes = get_option('woocommerce_tax_classes');
 			$tax_rate_sql = "SELECT tax_rate_id, tax_rate_country, tax_rate, tax_rate_class FROM ".$table_prefix."woocommerce_tax_rates WHERE tax_rate_state='' AND tax_rate_class IN ($active_classes_list)";
 			// Get an array of objects
-			$tax_rate_results = $wpdb->get_results($tax_rate_sql);
+			$tax_rate_results = $wpdb->get_results($tax_rate_sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			
 			if (!is_array($tax_rate_results)) return $this->res(false, __('The SQL query to ', 'woocommerce-eu-vat-compliance'));
 
 			// The SQL query above excludes entries which are specific to a particular state. This allows regional exceptions to be ignored. In keeping with this, we also need to fetch postcode and city entries, which are in a separate table.
 			$tax_rate_locations_sql = "SELECT DISTINCT tax_rate_id FROM ".$table_prefix."woocommerce_tax_rate_locations";
 			// Get an array of objects
-			$location_results = $wpdb->get_results($tax_rate_locations_sql);
+			$location_results = $wpdb->get_results($tax_rate_locations_sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- required direct SQL call
 			if (!is_array($location_results)) {
 				error_log("WC_EU_VAT_Compliance_Readiness_Tests::rates_exist_and_up_to_date_engine(): The SQL query to fetch from the woocommerce_tax_rate_locations table failed");
 				$location_results = array();
@@ -265,13 +267,15 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 			} elseif (0 == $countries_found) {
 				$info = __('No tax rates at all were found in your WooCommerce tax tables. Have you set any up yet?', 'woocommerce-eu-vat-compliance');
 			} else {
-				$info = sprintf(__('Fewer countries (%d) had at least one tax table in which a current VAT rate entry (used when the place of supply is the customer location) was found than expected (%d).', 'woocommerce-eu-vat-compliance'), $countries_found, $countries_expected);
+				// translators: integers
+				$info = sprintf(__('Fewer countries (%1$d) had at least one tax table in which a current VAT rate entry (used when the place of supply is the customer location) was found than expected (%2$d).', 'woocommerce-eu-vat-compliance'), $countries_found, $countries_expected);
 			}
 		}
 
 		if (count($has_rate_remaining_countries) > 0) {
 			if ($this->countries_are_base_country_or_equivalent($base_country, $has_rate_remaining_countries)) {
 				if ($result) $result = 'unknown';
+				// translators: a list of country codes
 				$info .= ' '.sprintf(__('You have countries that are either your base country or equivalent (%s) with no tax rate set in any tax rate table; but, perhaps this was intentional.', 'woocommerce-eu-vat-compliance'), implode(', ', $has_rate_remaining_countries));
 			} else {
 				$result = false;
@@ -351,12 +355,14 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 
 				if (!empty($response['valid'])) {
 					$results_by_region[$region_code] = true;
-					$info .= sprintf(__('The store VAT ID (%s) is valid in the %s region, so extended VAT checks are possible.', 'woocommerce-eu-vat-compliance'), $storevat_country.' '.$storevat_id, $region_title)."\n";
+					// translators: a VAT ID and a region name
+					$info .= sprintf(__('The store VAT ID (%1$s) is valid in the %2$s region, so extended VAT checks are possible.', 'woocommerce-eu-vat-compliance'), $storevat_country.' '.$storevat_id, $region_title)."\n";
 				} else {
 
 					if (!isset($results_by_region[$region_code])) $results_by_region[$region_code] = false;
 				
-					$info .= sprintf(__('The store VAT ID (%s) could not be confirmed as valid in the %s region, so VAT number validity checks will not succeed until this is resolved.', 'woocommerce-eu-vat-compliance'), $storevat_country.' '.$storevat_id, $region_title);
+					// translators: a VAT ID and region name
+					$info .= sprintf(__('The store VAT ID (%1$s) could not be confirmed as valid in the %2$s region, so VAT number validity checks will not succeed until this is resolved.', 'woocommerce-eu-vat-compliance'), $storevat_country.' '.$storevat_id, $region_title);
 
 					if (!empty($response['error_code'])) {
 						$info .= ' '.__('Error:', 'woocommerce-eu-vat-compliance').' '.$response['error_message'];
@@ -421,9 +427,10 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		} else {
 		
 			$latest_update = $provider->get_last_updated();
+			// translators: name of the provider
+			if ($latest_update < 1) return $this->res(false, sprintf(__('No rates were successfully fetched from the network (provider: %s)', 'woocommerce-eu-vat-compliance'), $conversion_provider));
 			
-			if ($latest_update < 1) return $this->res(false, __('No rates were successfully fetched from the network (provider: '.$conversion_provider.')', 'woocommerce-eu-vat-compliance'));
-			
+			// translators: a time
 			if ($latest_update < time() - 86400 - 2678400) return $this->res(false, sprintf(__('No updated rates were successfully fetched from the network (since %s)',  'woocommerce-eu-vat-compliance'), gmdate('Y-m-d H:i:s', $latest_update).' UTC'));
 		
 		}
@@ -440,6 +447,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		if (is_multisite()) $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
 		// Return just true: better not to report a non-event
 		if (!in_array('woocommerce-subscriptions/woocommerce-subscriptions.php', $active_plugins ) || array_key_exists('woocommerce-subscriptions/woocommerce-subscriptions.php', $active_plugins)) return true;
+		// translators: name of a plugin
 		return $this->res(false, sprintf(__('The %s plugin is active, but support for subscription orders is not part of the free version of the WooCommerce VAT Compliance plugin. New orders created via subscriptions will not have VAT compliance information attached.', 'woocommerce-eu-vat-compliance'), __('WooCommerce subscriptions', 'woocommerce-eu-vat-compliance')));
 	}
 
@@ -448,6 +456,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		if (is_multisite()) $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
 		// Return just true: better not to report a non-event
 		if (!in_array('subscriptio/subscriptio.php', $active_plugins ) || array_key_exists('subscriptio/subscriptio.php', $active_plugins)) return true;
+		// translators: name of a plugin
 		return $this->res(false, sprintf(__('The %s plugin is active, but support for subscription orders is not part of the free version of the WooCommerce VAT Compliance plugin. New orders created via subscriptions will not have VAT compliance information attached.', 'woocommerce-eu-vat-compliance'), __('RightPress Subscriptio', 'woocommerce-eu-vat-compliance')));
 	}
 	
@@ -467,6 +476,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		if (is_multisite()) $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
 		// Return just true: better not to report a non-event
 		if (!in_array('subscriben/subscriben.php', $active_plugins ) || array_key_exists('subscriben/subscriben.php', $active_plugins)) return true;
+		// translators: name of a plugin
 		return $this->res(false, sprintf(__('The %s plugin is active, but support for subscription orders is not part of the free version of the WooCommerce VAT Compliance plugin. New orders created via subscriben will not have VAT compliance information attached.', 'woocommerce-eu-vat-compliance'), __('Subscriben', 'woocommerce-eu-vat-compliance')));
 	}
 

@@ -25,7 +25,9 @@ include_once(WC_VAT_COMPLIANCE_DIR.'/record-order-details.php');
 
 if (file_exists(WC_VAT_COMPLIANCE_DIR.'/rates.php')) include_once(WC_VAT_COMPLIANCE_DIR.'/rates.php');
 
-if (file_exists(WC_VAT_COMPLIANCE_DIR.'/includes/widgets.php')) include_once(WC_VAT_COMPLIANCE_DIR.'/includes/widgets.php');
+add_action('widgets_init', function() {
+	if (file_exists(WC_VAT_COMPLIANCE_DIR.'/includes/widgets.php')) include_once(WC_VAT_COMPLIANCE_DIR.'/includes/widgets.php');
+});
 
 if (file_exists(WC_VAT_COMPLIANCE_DIR.'/preselect-country.php')) include_once(WC_VAT_COMPLIANCE_DIR.'/preselect-country.php');
 
@@ -70,13 +72,7 @@ class WC_EU_VAT_Compliance {
 	 */
 	public function __construct() {
 
-		$this->data_sources = array(
-			'HTTP_CF_IPCOUNTRY' => __('Cloudflare Geo-Location', 'woocommerce-eu-vat-compliance'),
-			'woocommerce' => __('WooCommerce built-in geo-location', 'woocommerce-eu-vat-compliance'),
-			'geoip_detect_get_info_from_ip_function_not_available' => __('MaxMind GeoIP database was not installed', 'woocommerce-eu-vat-compliance'),
-			'geoip_detect_get_info_from_ip' => __('MaxMind GeoIP database', 'woocommerce-eu-vat-compliance'),
-			'aelia-migrated' => __('Aelia EU VAT Assistant', 'woocommerce-eu-vat-compliance'),
-		);
+		add_action('init', array($this, 'init'));
 
 		add_action('before_woocommerce_init', array($this, 'before_woocommerce_init'), 1, 1);
 		add_action('plugins_loaded', array($this, 'plugins_loaded'), 11);
@@ -103,6 +99,94 @@ class WC_EU_VAT_Compliance {
 
 		// Update customer vat location on updating address on block checkout.
 		add_action('woocommerce_store_api_cart_update_customer_from_request', array($this, 'update_customer_vat_location'), 10, 2);
+	}
+	
+	/**
+	 * Runs upon the WP action init
+	 */
+	public function init() {
+		$this->data_sources = array(
+			'HTTP_CF_IPCOUNTRY' => __('Cloudflare Geo-Location', 'woocommerce-eu-vat-compliance'),
+			'woocommerce' => __('WooCommerce built-in geo-location', 'woocommerce-eu-vat-compliance'),
+			'geoip_detect_get_info_from_ip_function_not_available' => __('MaxMind GeoIP database was not installed', 'woocommerce-eu-vat-compliance'),
+			'geoip_detect_get_info_from_ip' => __('MaxMind GeoIP database', 'woocommerce-eu-vat-compliance'),
+			'aelia-migrated' => __('Aelia EU VAT Assistant', 'woocommerce-eu-vat-compliance'),
+		);
+		
+		$this->settings = apply_filters('wc_eu_vat_compliance_settings_after_forbid_checkout', array(array(
+			'name' => __('Forbid VAT checkout', 'woocommerce-eu-vat-compliance'),
+																										// Commented items are not used here.
+			//'desc' => __("For each VAT region selected here, <strong>all</strong> check-outs by customers (whether consumer or business) in those VAT regions for orders which contain goods subject to variable-by-country VAT (whether the customer is exempt or not) will be forbidden.", 'woocommerce-eu-vat-compliance').' '.__('N.B. This is a multi-select box; use the Control/Command keys to select/de-select multiple regions.', 'woocommerce-eu-vat-compliance'),
+			// 'desc_tip' 	=> __('This feature is intended only for sellers who wish to avoid issues from variable VAT regulations entirely, by not selling any qualifying goods to customers in the chosen regions (even ones who are potentially VAT exempt).', 'woocommerce-eu-vat-compliance' ).' '.__("Check-out will be forbidden if the cart contains any goods from the relevant tax classes indicated below, and if the customer's VAT country is part of a chosen region.", 'woocommerce-eu-vat-compliance'),
+																										'id' => 'woocommerce_eu_vat_compliance_forbid_vatable_checkout',
+			'type' => 'wc_vat_forbid_vatable_checkout',
+			//'css' => 'min-width: 350px;',
+			//'options' => $this->get_vat_region_codes_and_titles('noun', true),
+			'default' => array(),
+		)));
+		
+		$vat_region_codes_and_titles = $this->get_vat_region_codes_and_titles();
+		$this->settings[] = array(
+			'name' 		=> __('VAT regions', 'woocommerce-eu-vat-compliance'),
+			'desc' 		=> '', // Not sourced from here
+			'id' 		=> 'woocommerce_eu_vat_compliance_vat_region',
+			'type' 		=> 'wc_vat_regions',
+			'default' => array('eu'),
+		);
+		
+		$tax_settings_link = admin_url('admin.php?page=wc-settings&tab=tax');
+		
+		$this->settings[] = array(
+			'name' => __('Phrase matches used to identify VAT', 'woocommerce-eu-vat-compliance'),
+			// translators: "your tax tables"
+			'desc' => __('A comma-separated (optional spaces) list of strings (phrases) used to identify taxes which are VAT taxes.', 'woocommerce-eu-vat-compliance').' '.sprintf(__('One of these strings must be used in your tax name labels (i.e. the names used in %s) if you wish the tax to be identified as VAT.', 'woocommerce-eu-vat-compliance'), '<a target="_blank" href="'.$tax_settings_link.'">'.__('your tax tables', 'woocommerce-eu-vat-compliance').'</a>').' '.__('Omit labels used for non-VAT taxes.', 'woocommerce-eu-vat-compliance'),
+			'id' => 'woocommerce_eu_vat_compliance_vat_match',
+			'type' => 'text',
+			'default' => $this->default_vat_matches,
+			'css' => 'width:100%;'
+		);
+		
+		$this->settings[] = array(
+			'name' => __("Customer location place-of-supply tax classes", 'woocommerce-eu-vat-compliance'),
+			'desc' => __("Select all tax classes which are used in your store for products sold under customer place-of-supply VAT regulations (i.e. where the deemed place of supply is the customer location)", 'woocommerce-eu-vat-compliance'),
+			'id' => 'woocommerce_eu_vat_compliance_tax_classes',
+			'type' => 'wcvat_tax_classes',
+			'default' => 'yes'
+		);
+		
+		$this->settings[] = array(
+			'name' => __('Change taxation classes based upon destination thresholds', 'woocommerce-eu-vat-compliance'),
+			'desc' => '',
+			'id' => 'woocommerce_vat_compliance_tax_class_translations',
+			'type' => 'wcvat_tax_class_translations'
+			);
+		
+		if ((!defined('WC_EU_VAT_NOCOUNTRYPRESELECT') || !WC_EU_VAT_NOCOUNTRYPRESELECT) && (!defined('WC_VAT_NO_COUNTRY_PRESELECT') || !WC_VAT_NO_COUNTRY_PRESELECT)) {
+			
+			$this->settings[] = array(
+				'name' => __('Geolocate visitor locations', 'woocommerce-eu-vat-compliance'),
+				'desc' => __('This option will perform GeoIP lookups for visitors on the site and advise WooCommerce to use the resulting country for the taxation location (until more information is available, e.g. when countries are chosen at the checkout, or from a widget).', 'woocommerce-eu-vat-compliance').' <strong>'.__('Because WooCommerce now has its own option for this (in the "Customer Default Address") setting, it is recommended that you leave this off.', 'woocommerce-eu-vat-compliance').'</strong> '.__('Exceptions to this are if the geo-location option in WooCommerce is not working, or you have upgraded from a previous version and prefer not to change something that is already working.', 'woocommerce-eu-vat-compliance'),
+				'id' => 'woocommerce_vat_compliance_geo_locate',
+				'type' => 'checkbox',
+				'default' => 'no'
+			);
+		}
+		
+		$this->settings[] = array(
+			'name' => __('Same net prices everywhere', 'woocommerce-eu-vat-compliance'),
+			'desc' => __("This turns on WooCommerce's experimental feature to change the base price of products in order to achieve the same final (after tax) price for buyers all locations (whatever their tax rate). Note that it is still WooCommerce core that performs all pricing calculations (this option just exposes the core feature); we cannot provide support for calculation issues.", 'woocommerce-eu-vat-compliance').' <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">'.__('More information', 'woocommerce-eu-vat-compliance').'</a>',
+			'id' => 'woocommerce_eu_vat_compliance_same_prices',
+				'type' => 'checkbox',
+				'default' => 'no'
+			);
+		
+		$this->settings[] = array(
+			'name' => __('Invoice footer text (B2C)', 'woocommerce-eu-vat-compliance'),
+			'desc' => __("Text to prepend to the footer of your PDF invoice for transactions with VAT paid and non-zero (for supported PDF invoicing plugins)", 'woocommerce-eu-vat-compliance'),
+			'id' => 'woocommerce_eu_vat_compliance_pdf_footer_b2c',
+			'type' => 'textarea',
+			'css' => 'width:100%; height: 100px;'
+		);
 	}
 	
 	/**
@@ -757,12 +841,12 @@ class WC_EU_VAT_Compliance {
 			// Added 'REST_REQUEST' constant-defined condition to fix the issue of placing orders via block checkout. The block checkout uses the rest API for placing orders instead of AJAX.
 			if ('woocommerce_checkout_process' != $current_filter && (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT) && !defined('REST_REQUEST')) {
 				// Cart: just warn
+				// translators: name of a region
 				echo "<p class=\"woocommerce-info\" id=\"wcvat_notpossible\">".apply_filters('wceuvat_euvatcart_message', sprintf(__('Depending on your country, it may not be possible to purchase all the items in this cart. This is because this store does not sell items liable to VAT to customers in %s.', 'woocommerce-eu-vat-compliance'), $region_object->get_region_title('noun')))."</p>";
 			} else {
 				// Attempting to check-out: prevent
-				wc_add_notice(
-					apply_filters('wceuvat_euvatcheckoutforbidden_message', sprintf(__('This order cannot be processed. Due to the costs of complying with VAT laws in %s, we do not sell items liable to VAT to customers in that VAT area.', 'woocommerce-eu-vat-compliance'), $region_object->get_region_title('noun'))), 'error'
-				);
+				// translators: name of a region
+				wc_add_notice(apply_filters('wceuvat_euvatcheckoutforbidden_message', sprintf(__('This order cannot be processed. Due to the costs of complying with VAT laws in %s, we do not sell items liable to VAT to customers in that VAT area.', 'woocommerce-eu-vat-compliance'), $region_object->get_region_title('noun'))), 'error');
 			}
 		}
 
@@ -1071,7 +1155,7 @@ class WC_EU_VAT_Compliance {
 				$vat_paid = $order->get_meta('vat_compliance_vat_paid', true);
 			}
 			if (!empty($vat_paid)) {
-				$vat_paid = maybe_unserialize($vat_paid);
+				$vat_paid = unserialize($vat_paid, array('allowed_classes' => false));
 				// If by_rates is not set, then we need to update the version of the data by including that data asap
 				if (isset($vat_paid['by_rates'])) return $vat_paid;
 			}
@@ -1318,7 +1402,7 @@ Array
 		$sql = sprintf($sql, implode(',', array_keys($tax_rate_ids)));
 
 		// Populate the original tax array with the tax details
-		$tax_rates_info = $wpdb->get_results($sql, ARRAY_A);
+		$tax_rates_info = $wpdb->get_results($sql, ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		foreach ($tax_rates_info as $tax_rate_info) {
 			// Find to which item the details belong, amongst the order taxes
 			$order_tax_id = (int)$tax_rate_ids[$tax_rate_info['tax_rate_id']];
@@ -1407,7 +1491,9 @@ Array
 				<?php _e('VAT-related settings', 'woocommerce-eu-vat-compliance');?>
 			</th>
 			<td>
-				<?php printf(__('There are further tax-related settings in your %s', 'woocommerce-eu-vat-compliance'), '<a href="'.admin_url('admin.php?page=wc_eu_vat_compliance_cc').'">'.__('VAT Compliance dashboard', "woocommerce-eu-vat-compliance").'</a>');?>
+				<?php
+				// translators: VAT Compliance dashboard
+				printf(esc_html__('There are further tax-related settings in your %s', 'woocommerce-eu-vat-compliance'), '<a href="'.admin_url('admin.php?page=wc_eu_vat_compliance_cc').'">'.__('VAT Compliance dashboard', "woocommerce-eu-vat-compliance").'</a>');?>
 			</td>
 		</tr>
 		<?php
@@ -1432,6 +1518,7 @@ Array
 		
 		wp_localize_script('wc-vat-admin-common', 'wc_vat_compliance', apply_filters('woocommerce_vat_compliance_admin_localisations', array(
 			'delete_this_override' => __('Delete this over-ride...', 'woocommerce-eu-vat-compliance'),
+			// translators: a region
 			'in_region_use_policy' => __('For the %s VAT region, instead use the policy:', 'woocommerce-eu-vat-compliance'),
 			'vat_number_policies' => array(
 				'permit' => __('Permit', 'woocommerce-eu-vat-compliance'),
@@ -1442,7 +1529,8 @@ Array
 			'selected_recording_currency' => $selected_recording_currency,
 			'delete_this_translation_rule' => __('Delete this translation rule...', 'woocommerce-eu-vat-compliance'),
 			'tax_class_list' => $this->get_tax_classes(),
-			'tax_class_translation' => __('For products in the %s taxation class  being sold to a customer in the %s VAT region (but outside of your store base country), if the total year-to-date sales to that region is below %s, change the product taxation class to %s', 'woocommerce-eu-vat-compliance'),
+			// translators: a tax class, a region, an amount, a tax class
+			'tax_class_translation' => __('For products in the %1$s taxation class  being sold to a customer in the %2$s VAT region (but outside of your store base country), if the total year-to-date sales to that region is below %3$s, change the product taxation class to %4$s', 'woocommerce-eu-vat-compliance'),
 			'currency_list' => $this->get_currency_code_options(),
 			'region_list' => $this->get_vat_region_codes_and_titles('adjective', true),
 		)));
@@ -1553,7 +1641,7 @@ Array
 		global $wpdb; // HPOS-compliant
 		
 		// Postmeta (non-HPOS) version
-		$result = $wpdb->query("UPDATE {$wpdb->postmeta} SET meta_key='Valid VAT Number' WHERE meta_key='Valid EU VAT Number';");
+		$result = $wpdb->query("UPDATE {$wpdb->postmeta} SET meta_key='Valid VAT Number' WHERE meta_key='Valid EU VAT Number';"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		if (false === $result) {
 			error_log("WooCommerce VAT compliance: version_1_19_7_rename_valid_eu_vat_meta_field() on postmeta table failed");
 		} elseif ($result > 0) {
@@ -1562,7 +1650,7 @@ Array
 		
 		// HPOS version
 		if ($this->woocommerce_custom_order_tables_enabled()) {
-			$result = $wpdb->query("UPDATE {$wpdb->prefix}wc_orders_meta SET meta_key='Valid VAT Number' WHERE meta_key='Valid EU VAT Number';");
+			$result = $wpdb->query("UPDATE {$wpdb->prefix}wc_orders_meta SET meta_key='Valid VAT Number' WHERE meta_key='Valid EU VAT Number';"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			if (false === $result) {
 				error_log("WooCommerce VAT compliance: version_1_19_7_rename_valid_eu_vat_meta_field() on custom orders table failed (table may not exist if HPOS not active, which is not a problem)");
 			} elseif ($result > 0) {
@@ -1598,81 +1686,6 @@ Array
 		
 		// Load VAT number checking services (allowing them to register any actions, etc.)
 		$this->get_vat_number_lookup_services();
-		
-		$this->settings = apply_filters('wc_eu_vat_compliance_settings_after_forbid_checkout', array(array(
-			'name' => __('Forbid VAT checkout', 'woocommerce-eu-vat-compliance'),
-			// Commented items are not used here.
-			//'desc' => __("For each VAT region selected here, <strong>all</strong> check-outs by customers (whether consumer or business) in those VAT regions for orders which contain goods subject to variable-by-country VAT (whether the customer is exempt or not) will be forbidden.", 'woocommerce-eu-vat-compliance').' '.__('N.B. This is a multi-select box; use the Control/Command keys to select/de-select multiple regions.', 'woocommerce-eu-vat-compliance'),
-			// 'desc_tip' 	=> __('This feature is intended only for sellers who wish to avoid issues from variable VAT regulations entirely, by not selling any qualifying goods to customers in the chosen regions (even ones who are potentially VAT exempt).', 'woocommerce-eu-vat-compliance' ).' '.__("Check-out will be forbidden if the cart contains any goods from the relevant tax classes indicated below, and if the customer's VAT country is part of a chosen region.", 'woocommerce-eu-vat-compliance'),
-			'id' => 'woocommerce_eu_vat_compliance_forbid_vatable_checkout',
-			'type' => 'wc_vat_forbid_vatable_checkout',
-			//'css' => 'min-width: 350px;',
-			//'options' => $this->get_vat_region_codes_and_titles('noun', true),
-			'default' => array(),
-		)));
-
-		$vat_region_codes_and_titles = $this->get_vat_region_codes_and_titles();
-		$this->settings[] = array(
-			'name' 		=> __('VAT regions', 'woocommerce-eu-vat-compliance'),
-			'desc' 		=> '', // Not sourced from here
-			'id' 		=> 'woocommerce_eu_vat_compliance_vat_region',
-			'type' 		=> 'wc_vat_regions',
-			'default' => array('eu'),
-		);
-		
-		$tax_settings_link = admin_url('admin.php?page=wc-settings&tab=tax');
-		
-		$this->settings[] = array(
-			'name' => __('Phrase matches used to identify VAT', 'woocommerce-eu-vat-compliance'),
-			'desc' => __('A comma-separated (optional spaces) list of strings (phrases) used to identify taxes which are VAT taxes.', 'woocommerce-eu-vat-compliance').' '.sprintf(__('One of these strings must be used in your tax name labels (i.e. the names used in %s) if you wish the tax to be identified as VAT.', 'woocommerce-eu-vat-compliance'), '<a target="_blank" href="'.$tax_settings_link.'">'.__('your tax tables', 'woocommerce-eu-vat-compliance').'</a>').' '.__('Omit labels used for non-VAT taxes.', 'woocommerce-eu-vat-compliance'),
-			'id' => 'woocommerce_eu_vat_compliance_vat_match',
-			'type' => 'text',
-			'default' => $this->default_vat_matches,
-			'css' => 'width:100%;'
-		);
-
-		$this->settings[] = array(
-			'name' => __("Customer location place-of-supply tax classes", 'woocommerce-eu-vat-compliance'),
-			'desc' => __("Select all tax classes which are used in your store for products sold under customer place-of-supply VAT regulations (i.e. where the deemed place of supply is the customer location)", 'woocommerce-eu-vat-compliance'),
-			'id' => 'woocommerce_eu_vat_compliance_tax_classes',
-			'type' => 'wcvat_tax_classes',
-			'default' => 'yes'
-		);
-		
-		$this->settings[] = array(
-			'name' => __('Change taxation classes based upon destination thresholds', 'woocommerce-eu-vat-compliance'),
-			'desc' => '',
-			'id' => 'woocommerce_vat_compliance_tax_class_translations',
-			'type' => 'wcvat_tax_class_translations'
-		);
-		
-		if ((!defined('WC_EU_VAT_NOCOUNTRYPRESELECT') || !WC_EU_VAT_NOCOUNTRYPRESELECT) && (!defined('WC_VAT_NO_COUNTRY_PRESELECT') || !WC_VAT_NO_COUNTRY_PRESELECT)) {
-		
-			$this->settings[] = array(
-				'name' => __('Geolocate visitor locations', 'woocommerce-eu-vat-compliance'),
-				'desc' => __('This option will perform GeoIP lookups for visitors on the site and advise WooCommerce to use the resulting country for the taxation location (until more information is available, e.g. when countries are chosen at the checkout, or from a widget).', 'woocommerce-eu-vat-compliance').' <strong>'.__('Because WooCommerce now has its own option for this (in the "Customer Default Address") setting, it is recommended that you leave this off.', 'woocommerce-eu-vat-compliance').'</strong> '.__('Exceptions to this are if the geo-location option in WooCommerce is not working, or you have upgraded from a previous version and prefer not to change something that is already working.', 'woocommerce-eu-vat-compliance'),
-				'id' => 'woocommerce_vat_compliance_geo_locate',
-				'type' => 'checkbox',
-				'default' => 'no'
-			);
-		
-		}
-		
-		$this->settings[] = array(
-			'name' => __('Same net prices everywhere', 'woocommerce-eu-vat-compliance'),
-			'desc' => __("This turns on WooCommerce's experimental feature to change the base price of products in order to achieve the same final (after tax) price for buyers all locations (whatever their tax rate). Note that it is still WooCommerce core that performs all pricing calculations (this option just exposes the core feature); we cannot provide support for calculation issues.", 'woocommerce-eu-vat-compliance').' <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">'.__('More information', 'woocommerce-eu-vat-compliance').'</a>',
-			'id' => 'woocommerce_eu_vat_compliance_same_prices',
-			'type' => 'checkbox',
-			'default' => 'no'
-		);
-
-		$this->settings[] = array(
-			'name' => __('Invoice footer text (B2C)', 'woocommerce-eu-vat-compliance'),
-			'desc' => __("Text to prepend to the footer of your PDF invoice for transactions with VAT paid and non-zero (for supported PDF invoicing plugins)", 'woocommerce-eu-vat-compliance'),
-			'id' => 'woocommerce_eu_vat_compliance_pdf_footer_b2c',
-			'type' => 'textarea',
-			'css' => 'width:100%; height: 100px;'
-		);
 
 	}
 

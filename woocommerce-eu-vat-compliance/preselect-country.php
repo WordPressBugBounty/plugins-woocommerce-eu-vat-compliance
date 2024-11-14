@@ -27,6 +27,10 @@ class WC_VAT_Compliance_Preselect_Country {
 	
 	private $compliance;
 	
+	private $all_countries = array();
+	
+	private $suffixing_product;
+	
 	/**
 	 * Class constructor
 	 */

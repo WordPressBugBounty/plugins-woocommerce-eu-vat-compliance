@@ -25,7 +25,7 @@ class WC_VAT_Compliance_Reports_UI {
 	 * Hook into control centre and add a tab
 	 */
 	public function wc_eu_vat_compliance_cc_tab_reports($full = false) {
-		echo '<h2>'.__('VAT Report', 'woocommerce-eu-vat-compliance').'</h2>';
+		echo '<h2>'.esc_html__('VAT Report', 'woocommerce-eu-vat-compliance').'</h2>';
 		$this->wc_eu_vat_compliance_report();
 	}
 
@@ -51,7 +51,7 @@ class WC_VAT_Compliance_Reports_UI {
 
 		global $wpdb; // No interaction with HPOS
 		if ($wpdb->last_error) {
-			echo htmlspecialchars($wpdb->last_error);
+			echo esc_html($wpdb->last_error);
 			return;
 		}
 
@@ -65,7 +65,7 @@ class WC_VAT_Compliance_Reports_UI {
 			if (is_array($this->pre_wc22_order_parsed)) $pre_wc22_orders = implode(', ', array_unique($this->pre_wc22_order_parsed));
 			?>
 			<p>
-			<span style="font-weight:bold; color:red;" <?php if (isset($pre_wc22_orders)) echo 'title="'.esc_attr($pre_wc22_orders).'"'; ?>><?php _e('Note:', 'woocommerce-eu-vat-compliance');?></span> <?php echo __('The selected time period contains orders originally placed under WooCommerce 2.1 or earlier, or which for some other reason are missing tax data (e.g. they were created in a wrong manner by an extension).', 'woocommerce-eu-vat-compliance').' '.__('These WooCommerce versions did not record the data used to display the "Items" column, which is therefore incomplete and has been hidden.', 'woocommerce-eu-vat-compliance');?> <a href="#" onclick="jQuery('.wceuvat_itemsdata').slideDown(); wceuvat_itemsdata_show=true; jQuery(this).parent().remove(); return false;"><?php _e('Show', 'woocommerce-eu-vat-compliance');?></a>
+			<span style="font-weight:bold; color:red;" <?php if (isset($pre_wc22_orders)) echo 'title="'.esc_attr($pre_wc22_orders).'"'; ?>><?php esc_html_e('Note:', 'woocommerce-eu-vat-compliance');?></span> <?php echo esc_html__('The selected time period contains orders originally placed under WooCommerce 2.1 or earlier, or which for some other reason are missing tax data (e.g. they were created in a wrong manner by an extension).', 'woocommerce-eu-vat-compliance').' '.__('These WooCommerce versions did not record the data used to display the "Items" column, which is therefore incomplete and has been hidden.', 'woocommerce-eu-vat-compliance');?> <a href="#" onclick="jQuery('.wceuvat_itemsdata').slideDown(); wceuvat_itemsdata_show=true; jQuery(this).parent().remove(); return false;"><?php esc_html_e('Show', 'woocommerce-eu-vat-compliance');?></a>
 			</p>
 			<?php
 		}
@@ -173,9 +173,9 @@ class WC_VAT_Compliance_Reports_UI {
 						if ($compliance->round_amount($vat_from_items) == $compliance->round_amount($vat_total_amount)) $vatable_supplies = $items_amount;
 						
 						//data-items=\"".sprintf('%.05f', $totals['sales']-$totals['vat'])."\"
-						echo "<tr data-reporting-currency=\"".esc_attr($reporting_currency)."\" data-vatable-supplies=\"".$compliance->round_amount($vatable_supplies)."\" data-vat-items=\"".$compliance->round_amount($vat_items_amount)."\" data-vat-refunds=\"".$compliance->round_amount($vat_refund_amount)."\" data-vat-shipping=\"".$compliance->round_amount($vat_shipping_amount)."\" data-items=\"".$compliance->round_amount($items_amount)."\" class=\"statusrow status-$order_status\">
-							<td>$status_text</td>
-							<td>$country_label</td>".$extra_col_items."
+						echo "<tr data-reporting-currency=\"".esc_attr($reporting_currency)."\" data-vatable-supplies=\"".esc_attr($compliance->round_amount($vatable_supplies))."\" data-vat-items=\"".esc_attr($compliance->round_amount($vat_items_amount))."\" data-vat-refunds=\"".esc_attr($compliance->round_amount($vat_refund_amount))."\" data-vat-shipping=\"".esc_attr($compliance->round_amount($vat_shipping_amount))."\" data-items=\"".esc_attr($compliance->round_amount($items_amount))."\" class=\"statusrow status-$order_status\">
+							<td>".esc_html($status_text)."</td>
+							<td>".esc_html($country_label)."</td>".$extra_col_items."
 							<td>$reporting_currency_symbol ".$this->format_amount($vatable_supplies)."</td>
 							<td>$vat_rate_label</td>
 							<td>$reporting_currency_symbol ".$this->format_amount($vat_items_amount)."</td>
@@ -193,7 +193,7 @@ class WC_VAT_Compliance_Reports_UI {
 		foreach ($reporting_currency_symbols as $reporting_currency => $reporting_currency_symbol) {
 			?>
 			<tr class="wc_eu_vat_compliance_totals" id="wc_eu_vat_compliance_total">
-				<td><strong><?php echo __('Grand Total', 'woocommerce-eu-vat-compliance');?></strong></td>
+				<td><strong><?php esc_html_e('Grand Total', 'woocommerce-eu-vat-compliance');?></strong></td>
 				<td>-</td>
 				<td class="wceuvat_itemsdata"><strong><?php echo $reporting_currency_symbol.' '.sprintf('%.2f', $total_items[$reporting_currency]); ?></strong></td>
 				<td><strong><?php echo $reporting_currency_symbol.' '.sprintf('%.2f', $total_vatable_supplies[$reporting_currency]); ?></strong></td>
@@ -218,7 +218,7 @@ class WC_VAT_Compliance_Reports_UI {
 		echo '<a
 			class="wceuvat_downloadcsv_summary export_csv"
 			href="#"
-		>'.__('Export CSV (this table)', 'woocommerce-eu-vat-compliance').'</a>';
+		>'.esc_html__('Export CSV (this table)', 'woocommerce-eu-vat-compliance').'</a>';
 	}
 	
 	/**
@@ -243,27 +243,29 @@ class WC_VAT_Compliance_Reports_UI {
 	public function wc_eu_vat_compliance_report() {
 
 		$ranges = $this->get_report_ranges();
-		$current_range = empty($_GET['range']) ? 'quarter' : sanitize_text_field($_GET['range']);
+		$current_range = empty($_GET['range']) ? 'quarter' : sanitize_text_field(stripslashes($_GET['range']));
 		if (!in_array($current_range, array_merge(array_keys($ranges), array('custom')))) $current_range = 'quarter';
 
 		// Populate $this->start_date and $this->end_date
 		$this->calculate_current_range($current_range);
 
 		echo "<ul style=\"list-style-type: disc; list-style-position: inside;\">";
-		echo '<li>'.sprintf(__("The report below indicates the taxes actually charged on orders, when they were processed at the checkout (subject to later refunds): it does not take into account later alterations manually made to order data, nor manually created orders. This is because it is an audit report. If you want to take into account manual actions/orders, then you should use WooCommerce's built-in report at %s.", 'woocommerce-eu-vat-compliance'), '<a href="'.admin_url('admin.php?page=wc-reports&tab=taxes&report=taxes_by_code').'">'.htmlspecialchars(__('WooCommerce -> Report -> Taxes -> Taxes by code', 'woocommerce-eu-vat-compliance')).'</a>').'</li>';
+		// translators: a URL/link
+		echo '<li>'.sprintf(esc_html__("The report below indicates the taxes actually charged on orders, when they were processed at the checkout (subject to later refunds): it does not take into account later alterations manually made to order data, nor manually created orders. This is because it is an audit report. If you want to take into account manual actions/orders, then you should use WooCommerce's built-in report at %s.", 'woocommerce-eu-vat-compliance'), '<a href="'.admin_url('admin.php?page=wc-reports&tab=taxes&report=taxes_by_code').'">'.esc_html__('WooCommerce -> Report -> Taxes -> Taxes by code', 'woocommerce-eu-vat-compliance').'</a>').'</li>';
 
-		echo '<li>'.$this->country_mode_explanation_and_switcher().' '.__('The two can differ for an order in certain circumstances; for example, for cross-border orders if a "Local Pickup" method was used or if you are able to treat the place of supply as the store country up to a threshold.', 'woocommerce-eu-vat-compliance').'</li>';
+		echo '<li>'.$this->country_mode_explanation_and_switcher().' '.esc_html__('The two can differ for an order in certain circumstances; for example, for cross-border orders if a "Local Pickup" method was used or if you are able to treat the place of supply as the store country up to a threshold.', 'woocommerce-eu-vat-compliance').'</li>';
 
-		$csv_message = apply_filters('wc_eu_vat_compliance_csv_message', '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('Downloading all orders with VAT data in CSV format is a feature of the Premium version of this plugin.', 'woocommerce-eu-vat-compliance').'</a>');
+		$csv_message = apply_filters('wc_eu_vat_compliance_csv_message', '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.esc_html__('Downloading all orders with VAT data in CSV format is a feature of the Premium version of this plugin.', 'woocommerce-eu-vat-compliance').'</a>');
 
 		echo "<li>$csv_message</li>";
 
-		echo "<li>".__('The refund column in the table and CSV download is calculated from WooCommerce refunds.', 'woocommerce-eu-vat-compliance').' <a href="#" onclick="jQuery(this).hide(); jQuery(\'#wceuvat_refunds_moreexplanation\').fadeIn(); return false;">'.ucfirst(__('more information', 'woocommerce-eu-vat-compliance')).'...</a>'.'<span id="wceuvat_refunds_moreexplanation" style="display:none;"> '.__('These can be complete or partial refunds, and are separate to whether or not you have marked the order status as "refunded"', 'woocommerce-eu-vat-compliance').' (<a href="http://docs.woothemes.com/document/woocommerce-refunds/">'.__('more information', 'woocommerce-eu-vat-compliance').'</a>). '.__('Note that the refund column only includes refunds made within the chosen date range.', 'woocommerce-eu-vat-compliance')." ".__('i.e. This is a true VAT report for the chosen period.', 'woocommerce-eu-vat-compliance')." ".__('If you want to download data that includes refunds made at any time, then the best option is to choose a date range up until the current time, download the data by CSV, and perform spreadsheet calculations on the rows whose order date matches the period you are interested in.', 'woocommerce-eu-vat-compliance')."</span></li>";
+		echo "<li>".esc_html__('The refund column in the table and CSV download is calculated from WooCommerce refunds.', 'woocommerce-eu-vat-compliance').' <a href="#" onclick="jQuery(this).hide(); jQuery(\'#wceuvat_refunds_moreexplanation\').fadeIn(); return false;">'.ucfirst(__('more information', 'woocommerce-eu-vat-compliance')).'...</a>'.'<span id="wceuvat_refunds_moreexplanation" style="display:none;"> '.__('These can be complete or partial refunds, and are separate to whether or not you have marked the order status as "refunded"', 'woocommerce-eu-vat-compliance').' (<a href="http://docs.woothemes.com/document/woocommerce-refunds/">'.__('more information', 'woocommerce-eu-vat-compliance').'</a>). '.esc_html__('Note that the refund column only includes refunds made within the chosen date range.', 'woocommerce-eu-vat-compliance')." ".esc_html__('i.e. This is a true VAT report for the chosen period.', 'woocommerce-eu-vat-compliance')." ".esc_html__('If you want to download data that includes refunds made at any time, then the best option is to choose a date range up until the current time, download the data by CSV, and perform spreadsheet calculations on the rows whose order date matches the period you are interested in.', 'woocommerce-eu-vat-compliance')."</span></li>";
 		
-		echo "<li>".sprintf(__('The "Items (pre-VAT)" column (which is hidden until you press %s) indicates the total of items found in the order, and does not take account of whether any of those items were refunded (this is related to the fact that in WooCommerce, refunds can be made that are against the order and not against any particular items). As such, it is not necessarily equal to the total amount that VAT is liable on.', 'woocommerce-eu-vat-compliance'), '<a href="#" id="show-items-pre-vat-column" onclick="jQuery(\'.wceuvat_itemsdata\').slideDown(); wceuvat_itemsdata_show=true; return false;">'.__('here', 'woocommerce-eu-vat-compliance').'</a>')."</li>";
+		// translators: "here"
+		echo "<li>".sprintf(esc_html__('The "Items (pre-VAT)" column (which is hidden until you press %s) indicates the total of items found in the order, and does not take account of whether any of those items were refunded (this is related to the fact that in WooCommerce, refunds can be made that are against the order and not against any particular items). As such, it is not necessarily equal to the total amount that VAT is liable on.', 'woocommerce-eu-vat-compliance'), '<a href="#" id="show-items-pre-vat-column" onclick="jQuery(\'.wceuvat_itemsdata\').slideDown(); wceuvat_itemsdata_show=true; return false;">'.esc_html__('here', 'woocommerce-eu-vat-compliance').'</a>')."</li>";
 		
 		// N.B. Not 100% true... if the "items" column is close enough, we use that, to avoid people getting confused about the rounding.
-		echo "<li>".__('The "VAT-able supplies" column may (depending on various complexities relating to how WooCommerce handles refunds) be a calculated column, derived by dividing the "Total VAT" column by the VAT rate.', 'woocommerce-eu-vat-compliance')."</li>";
+		echo "<li>".esc_html__('The "VAT-able supplies" column may (depending on various complexities relating to how WooCommerce handles refunds) be a calculated column, derived by dividing the "Total VAT" column by the VAT rate.', 'woocommerce-eu-vat-compliance')."</li>";
 
 		do_action('wc_eu_vat_compliance_report_notes', $this);
 		
@@ -284,7 +286,7 @@ class WC_VAT_Compliance_Reports_UI {
 					}
 				}
 
-				echo '<input type="hidden" name="tab" value="'.$hidden_tab_value.'">'."\n";
+				echo '<input type="hidden" name="tab" value="'.esc_attr($hidden_tab_value).'">'."\n";
 
 				if (empty($this->start_date))
 					$this->start_date = strtotime(date('Y-01-01', current_time('timestamp')));
@@ -295,13 +297,13 @@ class WC_VAT_Compliance_Reports_UI {
 
 			<p>
 
-				<input type="checkbox" id="wc_vat_csv_anonymised" value="1" checked="checked"><label for="wc_vat_csv_anonymised"><?php _e('Anonymize any personal data when downloading a CSV?', 'woocommerce-eu-vat-compliance');?></label><br>
+				<input type="checkbox" id="wc_vat_csv_anonymised" value="1" checked="checked"><label for="wc_vat_csv_anonymised"><?php esc_html_e('Anonymize any personal data when downloading a CSV?', 'woocommerce-eu-vat-compliance');?></label><br>
 			
 				<?php
 			
 				// Paint the status-selector checkboxes
 			
-				_e('Include statuses (updates instantly):', 'woocommerce-eu-vat-compliance');
+				esc_html_e('Include statuses (updates instantly):', 'woocommerce-eu-vat-compliance');
 
 				$statuses = WooCommerce_EU_VAT_Compliance()->order_status_to_text(true);
 
@@ -349,6 +351,7 @@ class WC_VAT_Compliance_Reports_UI {
 		
 		$country_switch = ('taxation' == $country_mode) ? __("Press here to switch to the country which the tax is due to.", 'woocommerce-eu-vat-compliance') : __("Press here to switch to the customer's taxation country.", 'woocommerce-eu-vat-compliance');
 		
+		// translators: the name of the country
 		$ret = sprintf(__('The "country" shown below is %s.', 'woocommerce-eu-vat-compliance').' ', $country_used);
 		
 		$ret .= sprintf('<a href="#" data-mode="%s" class="wc_vat_country_mode_switch">%s</a>', $country_other_mode, $country_switch);
@@ -448,7 +451,8 @@ class WC_VAT_Compliance_Reports_UI {
 		$ranges = array('custom' => __('Custom', 'woocommerce-eu-vat-compliance'));
 
 		$current_time = current_time('timestamp');
-		$label_fmt = _x('Q%d %d', 'Q for quarter (date); e.g. Q1 2014', 'woocommerce-eu-vat-compliance');
+		// translators: the quarter number, and the year number
+		$label_fmt = _x('Q%1$d %2$d', 'Q for quarter (date); e.g. Q1 2014', 'woocommerce-eu-vat-compliance');
 
 		// Current quarter
 		$quarter = ceil(date('m', $current_time) / 3);
@@ -649,7 +653,7 @@ class WC_VAT_Compliance_Reports_UI {
 					if ('wc_eu_vat_compliance_cc' == $_REQUEST['page']) $base_url .= '&tab=reports';
 					// WC 4.0 wants to see these +
 					if ('wc-reports' == $_REQUEST['page']) $base_url .= '&tab=taxes';
-					if (isset($_REQUEST['report']) && 'eu_vat_report' == $_REQUEST['report']) $base_url .= '&report=eu_vat_report';
+					if (isset($_REQUEST['report']) && 'eu_vat_report' === $_REQUEST['report']) $base_url .= '&report=eu_vat_report';
 				?>
 				$('.stats_range li a').on('click', function(e) {
 					var href = $(this).attr('href');
@@ -686,28 +690,28 @@ class WC_VAT_Compliance_Reports_UI {
 		<table class="widefat" id="wc_eu_vat_compliance_report">
 		<thead>
 			<tr>
-				<th><?php _e('Order Status', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('Country', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Order Status', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Country', 'woocommerce-eu-vat-compliance');?></th>
 				<th class="wceuvat_itemsdata"><?php _e('Items (pre-VAT)', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT-able supplies', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT rate', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT (items)', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT (shipping)', 'woocommerce-eu-vat-compliance');?></th>
-				<th class="wceuvat_refundsdata" title="<?php echo esc_attr(__("N.B. This column shows (only) amounts that were refunded using WooCommerce's refunds feature within the chosen date range - whether the WooCommerce order status is 'refunded' or not, and independently of whether the order that the refund corresponds to is within the same date range.", 'woocommerce-eu-vat-compliance'));?>"><?php _e('VAT refunded', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('Total VAT', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT-able supplies', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT rate', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT (items)', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT (shipping)', 'woocommerce-eu-vat-compliance');?></th>
+				<th class="wceuvat_refundsdata" title="<?php echo esc_attr(__("N.B. This column shows (only) amounts that were refunded using WooCommerce's refunds feature within the chosen date range - whether the WooCommerce order status is 'refunded' or not, and independently of whether the order that the refund corresponds to is within the same date range.", 'woocommerce-eu-vat-compliance'));?>"><?php esc_html_e('VAT refunded', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Total VAT', 'woocommerce-eu-vat-compliance');?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<th><?php _e('Order Status', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('Country', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Order Status', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Country', 'woocommerce-eu-vat-compliance');?></th>
 				<th class="wceuvat_itemsdata"><?php _e('Items (pre-VAT)', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT-able supplies', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT rate', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT (items)', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('VAT (shipping)', 'woocommerce-eu-vat-compliance');?></th>
-				<th class="wceuvat_refundsdata" title="<?php echo esc_attr(__("N.B. This column shows (only) amounts that were refunded using WooCommerce's refunds feature - whether the WooCommerce order status is 'refunded' or not, and independently of whether the order that the refund corresponds to is within the same date range.", 'woocommerce-eu-vat-compliance'));?>"><?php _e('VAT refunded', 'woocommerce-eu-vat-compliance');?></th>
-				<th><?php _e('Total VAT', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT-able supplies', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT rate', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT (items)', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('VAT (shipping)', 'woocommerce-eu-vat-compliance');?></th>
+				<th class="wceuvat_refundsdata" title="<?php echo esc_attr(__("N.B. This column shows (only) amounts that were refunded using WooCommerce's refunds feature - whether the WooCommerce order status is 'refunded' or not, and independently of whether the order that the refund corresponds to is within the same date range.", 'woocommerce-eu-vat-compliance'));?>"><?php esc_html_e('VAT refunded', 'woocommerce-eu-vat-compliance');?></th>
+				<th><?php esc_html_e('Total VAT', 'woocommerce-eu-vat-compliance');?></th>
 			</tr>
 		</tfoot>
 		<tbody>

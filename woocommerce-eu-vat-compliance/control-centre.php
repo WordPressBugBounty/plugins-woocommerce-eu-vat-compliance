@@ -15,6 +15,8 @@ Components:
 - Link to GeoIP settings, if needed + GeoIP status
 */
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.json_encode_json_encode 
+
 class WC_EU_VAT_Compliance_Control_Centre {
 
 	private $compliance;
@@ -51,7 +53,8 @@ class WC_EU_VAT_Compliance_Control_Centre {
 						if (has_action('wcvat_tax_class_translations_print_admin_ui')) {
 							do_action('wcvat_tax_class_translations_print_admin_ui');
 						} else {
-							echo '<p><em>'.sprintf(__('This is a feature of %s.', 'woocommerce-eu-vat-compliance'), '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('the premium version of this plugin', 'woocommerce-eu-vat-compliance').'</a>').'</em></p>';
+							// translators: "the premium version of this plugin"
+							echo '<p><em>'.sprintf(esc_html__('This is a feature of %s.', 'woocommerce-eu-vat-compliance'), '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('the premium version of this plugin', 'woocommerce-eu-vat-compliance').'</a>').'</em></p>';
 						}
 					?>
 			</td>
@@ -136,7 +139,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			<label><?php _e('VAT region(s)', 'woocommerce-eu-vat-compliance');?></label>
 			</th>
 			<td>
-				<p><?php echo __('Choose when to count customers as being ones inside a VAT region (based on their taxable address) to which other relevant settings apply. i.e. Customers for whom your shop potentially charges or accounts for VAT.').' '.__('N.B. The EU VAT region (since 1st January 2021) does not include the UK.', 'woocommerce-eu-vat-compliance');?></p>
+				<p><?php echo esc_html__('Choose when to count customers as being ones inside a VAT region (based on their taxable address) to which other relevant settings apply. i.e. Customers for whom your shop potentially charges or accounts for VAT.', 'woocommerce-eu-vat-compliance').' '.esc_html__('N.B. The EU VAT region (since 1st January 2021) does not include the UK.', 'woocommerce-eu-vat-compliance');?></p>
 					<?php
 						foreach ($region_codes_and_titles as $code => $title) {
 							$checked = in_array($code, $regions) ? ' checked="checked"' : '';
@@ -264,7 +267,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			}
 
 			echo json_encode(array('result' => 'ok'));
-		} elseif ('testprovider' == $_POST['subaction'] && !empty($_POST['key']) && !empty($_POST['tocurrencies'])) {
+		} elseif ('testprovider' === $_POST['subaction'] && !empty($_POST['key']) && !empty($_POST['tocurrencies'])) {
 
 			$providers = WooCommerce_EU_VAT_Compliance()->get_rate_providers();
 
@@ -293,16 +296,18 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				if (isset($currency_code_options[$to_currency])) $to_currency_label = $currency_code_options[$to_currency]." - $to_currency";
 				
 				if (false === $result) {
-					$response .= sprintf(__('Failed: The currency conversion (%s to %s) failed. Please check the settings, that the chosen provider provides exchange rates for your chosen currencies, and the outgoing network connectivity from your webserver.', 'woocommerce-eu-vat-compliance'), $from_currency, $to_currency)."<br>\n";
+					// translators: currency symbols
+					$response .= sprintf(__('Failed: The currency conversion (%1$s to %2$s) failed. Please check the settings, that the chosen provider provides exchange rates for your chosen currencies, and the outgoing network connectivity from your webserver.', 'woocommerce-eu-vat-compliance'), $from_currency, $to_currency)."<br>\n";
 				} else {
-					$response .= sprintf(__('Success: %s currency units in your shop base currency (%s) are worth %s currency units in the VAT reporting currency (%s)', 'woocommerce-eu-vat-compliance'), '10.00', $from_currency_label, $result, $to_currency_label)."<br>\n";
+					// translators: 10.00, a currency label, a number, a currency label
+					$response .= sprintf(__('Success: %1$s currency units in your shop base currency (%2$s) are worth %3$s currency units in the VAT reporting currency (%4$s)', 'woocommerce-eu-vat-compliance'), '10.00', $from_currency_label, $result, $to_currency_label)."<br>\n";
 				}
 				
 			}
 
 			echo json_encode(array('response' => $response));
 
-		} elseif ('load_reports_tab' == $_POST['subaction']) {
+		} elseif ('load_reports_tab' === $_POST['subaction']) {
 			ob_start();
 			do_action('wc_eu_vat_compliance_cc_tab_reports', true);
 			$contents = @ob_get_contents();
@@ -430,6 +435,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 
 		foreach (explode(',', $opts['email']) as $sendmail_addr) {
 
+			// translators: a URL
 			$subject = sprintf(__('Failed VAT compliance readiness tests on %s.', 'woocommerce-eu-vat-compliance'), site_url());
 
 			$sent = wp_mail(trim($sendmail_addr), $subject, $mail_body);
@@ -507,6 +513,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		// Legacy filter check (May 2023)
 		if ('' !== apply_filters('wc_eu_vat_compliance_report_meta_fields', '', true) || '' !== apply_filters('wc_eu_vat_compliance_report_meta_fields', '', false)) {
 			echo '<div id="message" class="error" style="max-width: 860px;"><strong>'.__('Deprecation: changes needed to your custom code', 'woocommerce-eu-vat-compliance').'</strong><br>';
+			// translators: a filter name
 			echo sprintf(__('Your site has some customised PHP code using the filter %s.', 'woocommerce-eu-vat-compliance'), '<em>wc_eu_vat_compliance_report_meta_fields</em>').' '.__('This has been deprecated. You must consult the plugin changelog and code, and update it - it will be removed in a future release, causing your customised code to stop working.', 'woocommerce-eu-vat-compliance');
 			echo '</div>';
 		}
@@ -804,7 +811,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			array(
 				'title' => __('WooCommerce VAT settings (new settings from the VAT compliance plugin)', 'woocommerce-eu-vat-compliance'),
 				'type' => 'euvat_tax_options_section',
-				'desc' => __('', 'woocommerce-eu-vat-compliance'),
+				'desc' => '',
 				'id' => 'euvat_vat_options'),
 		);
 
@@ -1001,7 +1008,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		
 		// Domain is WooCommerce, since this string is used there
 		$tax_rates = array(
-			'standard' => __('Standard', 'woocommerce'),
+			'standard' => __('Standard', 'woocommerce'), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 		);
 		
 		// Get tax classes and display as links.
@@ -1009,7 +1016,8 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		
 		foreach ($tax_classes as $class) {
 		
-			echo '<p><strong>'.sprintf(__('%s tax table', 'woocommerce-eu-vat-compliance'), $class).'</strong> - <a href="'.$tax_settings_link.'&section='.sanitize_title($class).'">'.__('Follow this link to see or edit this tax table', 'woocommerce-eu-vat-compliance').'</a></p>';
+			// translators: a tax class name
+			echo '<p><strong>'.sprintf(esc_html__('%s tax table', 'woocommerce-eu-vat-compliance'), $class).'</strong> - <a href="'.$tax_settings_link.'&section='.sanitize_title($class).'">'.esc_html__('Follow this link to see or edit this tax table', 'woocommerce-eu-vat-compliance').'</a></p>';
 		
 		}
 
@@ -1354,7 +1362,8 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		if (has_action('wc_vat_compliance_vat_number_settings')) {
 			do_action('wc_vat_compliance_vat_number_settings');
 		} else {
-			echo '<p>'.sprintf(__('VAT number lookups are a feature of %s.', 'woocommerce-eu-vat-compliance'), '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('the premium version of this plugin', 'woocommerce-eu-vat-compliance').'</a>').'</p>';
+			// translators: a hyperlink to the Premium product
+			echo '<p>'.sprintf(esc_html__('VAT number lookups are a feature of %s.', 'woocommerce-eu-vat-compliance'), '<a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('the premium version of this plugin', 'woocommerce-eu-vat-compliance').'</a>').'</p>';
 		}
 		
 	}
@@ -1370,9 +1379,10 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		$currency_label = $base_currency;
 		if (isset($currency_code_options[$base_currency])) $currency_label = $currency_code_options[$base_currency]." ($base_currency)";
 
-		echo '<p>'.sprintf(__('Set the currencies that you have to use when making VAT reports. If any are not the same as your base currency (%s), then when orders are placed, the exchange rate will be recorded as part of the order information, allowing accurate VAT reports to be made.', 'woocommerce-eu-vat-compliance'), $currency_label).' '.__('If using a currency other than your base currency, then you must configure an exchange rate provider.', 'woocommerce-eu-vat-compliance').'</p>';
+		// translators: base currency symbol
+		echo '<p>'.sprintf(esc_html__('Set the currencies that you have to use when making VAT reports. If any are not the same as your base currency (%s), then when orders are placed, the exchange rate will be recorded as part of the order information, allowing accurate VAT reports to be made.', 'woocommerce-eu-vat-compliance'), $currency_label).' '.__('If using a currency other than your base currency, then you must configure an exchange rate provider.', 'woocommerce-eu-vat-compliance').'</p>';
 
-		echo '<p>'.__('N.B. If you have a need for a specific provider, then please let us know.', 'woocommerce-eu-vat-compliance').'</p>';
+		echo '<p>'.esc_html__('N.B. If you have a need for a specific provider, then please let us know.', 'woocommerce-eu-vat-compliance').'</p>';
 
 		echo '<table class="form-table">'. "\n\n";
 
@@ -1392,7 +1402,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			}
 		}
 		
-		echo '<tr><td colspan="2"><a id="wceuvat-new-reporting-override" href="#" data-existing-overrides="'.esc_attr(json_encode($existing_overrides)).'">'.__('Add a reporting currency over-ride for purchases with a specified country of supply...', 'woocommerce-eu-vat-compliance').'</a></td></tr>';
+		echo '<tr><td colspan="2"><a id="wceuvat-new-reporting-override" href="#" data-existing-overrides="'.esc_attr(json_encode($existing_overrides)).'">'.esc_html__('Add a reporting currency over-ride for purchases with a specified country of supply...', 'woocommerce-eu-vat-compliance').'</a></td></tr>';
 
 		echo '</table>';
 
@@ -1404,12 +1414,12 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			$settings = method_exists($provider, 'settings_fields') ? $provider->settings_fields() : false;
 			if (!is_string($settings) && !is_array($settings)) continue;
 			$info = $provider->info();
-			echo '<div id="wceuvat-rate-provider_container_'.$key.'" class="wceuvat-rate-provider_container wceuvat-rate-provider_container_'.$key.'">';
+			echo '<div id="wceuvat-rate-provider_container_'.esc_attr($key).'" class="wceuvat-rate-provider_container wceuvat-rate-provider_container_'.$key.'">';
 			echo '<h4 style="padding-bottom:0px; margin-bottom:0px;">'.__('Exchange rate provider', 'woocommerce-eu-vat-compliance').': '.htmlspecialchars($info['title']).'</h4>';
 			echo '<p style="padding-top:0px; margin-top:0px;">'.htmlspecialchars($info['description']);
-			if (!empty($info['url'])) echo ' <a href="'.$info['url'].'">'.__('Follow this link for more information.', 'woocommerce-eu-vat-compliance').'</a>';
+			if (!empty($info['url'])) echo ' <a href="'.esc_attr($info['url']).'">'.__('Follow this link for more information.', 'woocommerce-eu-vat-compliance').'</a>';
 			
-			echo "<button id=\"wc_eu_vat_test_provider_button_$key\" onclick=\"test_provider('".$key."')\" class=\"button wc_eu_vat_test_provider_button\">".__('Test Provider', 'woocommerce-eu-vat-compliance')."</button>";
+			echo "<button id=\"wc_eu_vat_test_provider_button_".esc_attr($key)."\" onclick=\"test_provider('".esc_attr($key)."')\" class=\"button wc_eu_vat_test_provider_button\">".__('Test Provider', 'woocommerce-eu-vat-compliance')."</button>";
 			
 			echo '</p>';
 			if (!empty($settings)) {
@@ -1421,7 +1431,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				}
 				echo '</table>';
 			}
-			echo "<div id=\"wc_eu_vat_test_provider_$key\"></div>";
+			echo "<div id=\"wc_eu_vat_test_provider_".esc_attr($key)."\"></div>";
 			echo '</div>';
 		}
 
@@ -1431,13 +1441,13 @@ class WC_EU_VAT_Compliance_Control_Centre {
 	 * Used internally to render the 'Readiness tests' tab
 	 */
 	private function render_tab_readiness() {
-		echo '<h2>'.__('VAT Compliance Readiness', 'woocommerce-eu-vat-compliance').'</h2>';
+		echo '<h2>'.esc_html__('VAT Compliance Readiness', 'woocommerce-eu-vat-compliance').'</h2>';
 
 		echo '<div style="width:960px;">';
 
-		echo '<p>'.__('N.B. Items listed below are listed as suggestions only, and it is not claimed that all apply to every situation.', 'woocommerce-eu-vat-compliance').' '.__('Items listed do not constitute legal or financial advice. For all decisions as to which settings are relevant or right for your location and setup, responsibility is yours.', 'woocommerce-eu-vat-compliance').'</p>';
+		echo '<p>'.esc_html__('N.B. Items listed below are listed as suggestions only, and it is not claimed that all apply to every situation.', 'woocommerce-eu-vat-compliance').' '.esc_html__('Items listed do not constitute legal or financial advice. For all decisions as to which settings are relevant or right for your location and setup, responsibility is yours.', 'woocommerce-eu-vat-compliance').'</p>';
 		
-		echo '<p>'.__("N.B. If you are not selling goods for which the \"place of supply\" is deemed to be the customer's location (rather than the seller's; e.g. electronically supplied goods), then the tests for the presence of up-to-date VAT per-country rates are not relevant and you should not use them.", 'woocommerce-eu-vat-compliance').'</p>';
+		echo '<p>'.esc_html__("N.B. If you are not selling goods for which the \"place of supply\" is deemed to be the customer's location (rather than the seller's; e.g. electronically supplied goods), then the tests for the presence of up-to-date VAT per-country rates are not relevant and you should not use them.", 'woocommerce-eu-vat-compliance').'</p>';
 
 		if (!class_exists('WC_EU_VAT_Compliance_Readiness_Tests')) require_once(WC_VAT_COMPLIANCE_DIR.'/readiness-tests.php');
 		$test = new WC_EU_VAT_Compliance_Readiness_Tests();
@@ -1461,7 +1471,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		$opts = get_option('wceuvat_background_tests');
 		$email = empty($opts['email']) ? '' : (string)$opts['email'];
 
-		$default_bottom_blurb = '<p><a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.__('To automatically run these tests daily, and notify yourself of any failed tests by email, use our Premium version.', 'woocommerce-eu-vat-compliance').'</a></p>';
+		$default_bottom_blurb = '<p><a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.esc_html__('To automatically run these tests daily, and notify yourself of any failed tests by email, use our Premium version.', 'woocommerce-eu-vat-compliance').'</a></p>';
 		$bottom_blurb = apply_filters('wceuvat_readinesstests_bottom_section', $default_bottom_blurb, $email);
 		$premium_present = ($bottom_blurb == $default_bottom_blurb) ? false : true;
 
