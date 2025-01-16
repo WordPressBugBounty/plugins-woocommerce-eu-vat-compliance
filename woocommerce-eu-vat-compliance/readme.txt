@@ -1,8 +1,9 @@
-=== EU/UK VAT Compliance Assistant for WooCommerce ===
+=== European VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
-Requires at least: 4.7
+Requires at least: 5.3
 Tested up to: 6.7
-Stable tag: 1.31.4
+Stable tag: 1.32.4
+Requires PHP: 7.0
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
 Donate link: https://david.dw-perspective.org.uk/donate
@@ -128,6 +129,34 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.32.4 - 2025-01-16 =
+
+* FIX: When converting data from HPOS format during report generation, sort the intermediate results to avoid needing further database calls, affecting performance
+* FIX: Ensure that order meta-data is saved if insertion of order time order number was required during report generation
+* TWEAK: Allow HMRC authentication for sites without any usable encryption key (stores the key in the database unencrypted, which still requires an attacker to gain access to your database via a security vulnerability to gain the HMRC token which then only allows him to look up UK VAT numbers). Such sites have neither SECURE_AUTH_KEY nor DB_PASSWORD set in wp-config.php.
+* TWEAK: Cause explanatory text to appear by the "Price display suffix" in the WooCommerce tax settings
+
+= 1.32.3 - 2025-01-06 =
+
+* TWEAK: For HMRC VAT lookup authentication, fix encryption support for sites that had defined an unusable SECURE_AUTH_KEY
+
+= 1.32.2 - 2025-01-03 =
+
+* FIX: In the block-based check-out, do not try to carry out region-related operations outside of a VAT region upon order placement
+
+= 1.32.1 - 2024-12-23 =
+
+* FEATURE: Can look up UK VAT numbers using HMRC's v2.0 lookup service (Premium version). Note: HMRC are turning off their v1.0 lookup service in January 2025. If you are using this then you *must* obtain a (free) HMRC account and go through an authorisation procedure, in the "VAT number lookups" section of the plugin settings; otherwise, your UK VAT number lookups will fail in January. N.B. You can alternatively use the integrated VATSense service.
+* FEATURE: Access keys from HMRC for UK VAT number lookups are now stored in your database encrypted, assuming that the SECURE_AUTH_KEY constant is set. (N.B. Changing the value of this constant will require re-authenticating).
+* TWEAK: Make explicit the requirement for PHP >= 7.0 (which was already required by the minimum supported WooCommerce version)
+* TWEAK: Mark as requiring WordPress 5.3+ (which was already required by the minimum supported WooCommerce version)
+* TWEAK: Do not escape <span> tags in tax summary table
+* TWEAK: Update jQuery tablesorter to 2.32.0 (https://github.com/Mottie/tablesorter/)
+
+= 1.31.5 - 2024-12-02 =
+
+* FIX: Fix a regression in the "tax class transition" option display in 1.31.4
 
 = 1.31.4 - 2024-11-14 =
 
@@ -1673,4 +1702,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.31.4 - Resolve a couple of deprecations and two regressions in 1.31.2. A recommended update for all.
+* 1.32.4 - Fixes issues with report generation when HPOS is active. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.

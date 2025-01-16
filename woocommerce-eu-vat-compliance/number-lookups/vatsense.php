@@ -85,7 +85,7 @@ class WC_VAT_Number_Lookup_Service_vatsense extends WC_VAT_Number_Lookup_Service
 		
 		echo '<input name="woocommerce_vat_compliance_vat_sense_api_key" type="text" placeholder="'.__('(Paste API key here)', 'woocommerce-eu-vat-compliance').'" size="36" value="'.esc_attr($this->get_api_key_option()).'">';
 		echo '<br> <br>';
-		echo __('VAT Sense is a third-party provider of VAT validation capabilities (commercial, but with a free tier).', 'woocommerce-eu-vat-compliance').' '.__('Enabling it may enhance reliability by allowing you to still complete look-ups if your network route to the official VIES/HMRC service is down; it also provides support for Norwegian VAT numbers.', 'woocommerce-eu-vat-compliance').' '.__('If you provide an API key then it will also be used as the source for current VAT rate data.', 'woocommerce-eu-vat-compliance').' <a href="'.$this::SIGNUP_URL.'">'.__('Follow this link to sign up for a vatsense.com account.', 'woocommerce-eu-vat-compliance').'</a>';
+		echo __('VAT Sense is a third-party provider of VAT validation capabilities (commercial, but with a free tier).', 'woocommerce-eu-vat-compliance').' '.__('Enabling it may enhance reliability by allowing you to still complete look-ups if your network route to the official VIES/HMRC service is down; it also provides support for Norwegian and Swiss VAT numbers.', 'woocommerce-eu-vat-compliance').' '.__('If you provide an API key then it will also be used as the source for current VAT rate data.', 'woocommerce-eu-vat-compliance').' <a href="'.$this::SIGNUP_URL.'">'.__('Follow this link to sign up for a vatsense.com account.', 'woocommerce-eu-vat-compliance').'</a>';
 
 	}
 	

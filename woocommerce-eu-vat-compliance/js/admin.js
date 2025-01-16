@@ -38,6 +38,8 @@ function wc_vat_compliance_currency_selector_dropdown(dom_id, name, selected_val
 
 jQuery(function($) {
 	
+	$('#woocommerce_price_display_suffix').after('<p class="description ">'+wc_vat_compliance.price_display_suffix_text+'</p>');
+	
 	var $container = $('#wceuvat_settings_accordion input[name="woocommerce_prices_include_tax"]').parents('table').first();
 	$container.find( 'input, select').prop('disabled', true).css('opacity', 1);
 	

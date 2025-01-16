@@ -117,7 +117,6 @@ class WC_VAT_Compliance_Reports_UI {
 					foreach ($per_rate_totals as $rate_key => $totals) {
 
 						$country_label = isset($all_countries[$country]) ? $all_countries[$country] : __('Unknown', 'woocommerce-eu-vat-compliance').' ('.$country.')';
-						$country_label = '<span title="'.$country.'">'.$country_label.'</span>';
 
 						$vat_items_amount = $compliance->round_amount($totals['vat']-$totals['vat_shipping']);
 						$vat_shipping_amount = $compliance->round_amount($totals['vat_shipping']);
@@ -175,7 +174,7 @@ class WC_VAT_Compliance_Reports_UI {
 						//data-items=\"".sprintf('%.05f', $totals['sales']-$totals['vat'])."\"
 						echo "<tr data-reporting-currency=\"".esc_attr($reporting_currency)."\" data-vatable-supplies=\"".esc_attr($compliance->round_amount($vatable_supplies))."\" data-vat-items=\"".esc_attr($compliance->round_amount($vat_items_amount))."\" data-vat-refunds=\"".esc_attr($compliance->round_amount($vat_refund_amount))."\" data-vat-shipping=\"".esc_attr($compliance->round_amount($vat_shipping_amount))."\" data-items=\"".esc_attr($compliance->round_amount($items_amount))."\" class=\"statusrow status-$order_status\">
 							<td>".esc_html($status_text)."</td>
-							<td>".esc_html($country_label)."</td>".$extra_col_items."
+							<td><span title=\"".esc_attr($country)."\">".esc_html($country_label)."</span></td>".wp_kses_post($extra_col_items)."
 							<td>$reporting_currency_symbol ".$this->format_amount($vatable_supplies)."</td>
 							<td>$vat_rate_label</td>
 							<td>$reporting_currency_symbol ".$this->format_amount($vat_items_amount)."</td>

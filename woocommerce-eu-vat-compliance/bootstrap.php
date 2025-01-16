@@ -527,13 +527,18 @@ class WC_EU_VAT_Compliance {
 	/**
 	 * Get a VAT region object
 	 *
-	 * @param String  $region_code
-	 * @param Boolean $require - if true, then failures will be fatal
+	 * @param String|Null $region_code - Passing null is invalid and results in error_log() being called to log the backtrace, and returning (even if $require is true)
+	 * @param Boolean	  $require	   - if true, then failures will be fatal
 	 *
 	 * @return WC_VAT_Region|Boolean
 	 */
 	public function get_vat_region_object($region_code, $require = true) {
 	
+		if (null === $region_code) {
+			error_log("WC_EU_VAT_Compliance::get_vat_region_object(null) called; please report this to support: ".wp_debug_backtrace_summary());
+			return false;
+		}
+		
 		static $region_objects = array();
 		
 		if (!class_exists('WC_VAT_Region')) require_once(WC_VAT_COMPLIANCE_DIR.'/regions/vat-region.php');
@@ -1528,10 +1533,13 @@ Array
 			'selected_recording_currency' => $selected_recording_currency,
 			'delete_this_translation_rule' => __('Delete this translation rule...', 'woocommerce-eu-vat-compliance'),
 			'tax_class_list' => $this->get_tax_classes(),
+			// N.B. The '%s's below are search/replaced in admin.js
 			// translators: a tax class, a region, an amount, a tax class
-			'tax_class_translation' => __('For products in the %1$s taxation class  being sold to a customer in the %2$s VAT region (but outside of your store base country), if the total year-to-date sales to that region is below %3$s, change the product taxation class to %4$s', 'woocommerce-eu-vat-compliance'),
+			'tax_class_translation' => __('For products in the %s taxation class  being sold to a customer in the %s VAT region (but outside of your store base country), if the total year-to-date sales to that region is below %s, change the product taxation class to %s', 'woocommerce-eu-vat-compliance'),
 			'currency_list' => $this->get_currency_code_options(),
 			'region_list' => $this->get_vat_region_codes_and_titles('adjective', true),
+			// The following should be kept in sync with the description for the woocommerce_price_display_suffix option in control-centre.php
+			'price_display_suffix_text' => __('Define text to show after your product prices. This could be, for example, "inc. Vat" to explain your pricing. You can also have prices substituted here using one of the following: <code>{price_including_tax}, {price_excluding_tax}</code>. Content wrapped in-between <code>{iftax}</code> and <code>{/iftax}</code> will display only if there was tax; within that, <code>{country}</code> will be replaced by the name of the country used to calculate tax.', 'woocommerce-eu-vat-compliance' ).' '.__('Use <code>{country_with_brackets}</code> to show the country only if the item had per-country varying VAT, and to show brackets around the country.', 'woocommerce-eu-vat-compliance')
 		)));
 	}
 	

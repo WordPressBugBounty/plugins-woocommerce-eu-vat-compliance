@@ -641,10 +641,10 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 	 * 
 	 * Rows with meta key _billing_address_index will be removed if present
 	 *
-	 * @param Array $results		  - input; note that objects in this array may be altered (the caller cannot assume they have not been)
+	 * @param Array $results		  - input; note that objects in this array may be altered (the caller cannot assume they have not been); objects for the same order ID must be consecutive
 	 * @param Array $tax_extra_fields - extra meta fields that were fetched
 	 *
-	 * @param Array - converted results
+	 * @param Array - converted results. N.B. These will maintain the required order described for $results
 	 */
 	private function convert_hpos_results_format_to_post($results, $tax_extra_fields = array()) {
 
@@ -757,6 +757,9 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			}
 		}
 
+		// It is important that the results are sorted so that all elements for the same order ID are consecutive, because other code assumes this when processing.
+		usort($results, function($a, $b) { return $a->ID <=> $b->ID; });
+		
 		return $results;
 		
 	}
@@ -859,7 +862,6 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 					$order_statuses[$order_id] = $order_status;
 				}
 				
-				
 				if (empty($normalised_results[$order_status][$order_id]['date_gmt']) && isset($res->date)) {
 					$normalised_results[$order_status][$order_id] = array('date_gmt' => $res->date);
 					if ($print_as_csv) $normalised_results[$order_status][$order_id]['date'] = get_date_from_gmt($res->date); // Post storage stores this as post_date, but HPOS doesn't store it. In both cases we convert from the GMT date.
@@ -912,7 +914,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 						$normalised_results[$order_status][$order_id]['vatno_valid'] = $res->meta_value;
 					break;
 					case '_order_number_formatted':
-						// This comes from WooCommerce Sequential Order Numbers Pro, and we prefer it
+						// This comes from WooCommerce Sequential Order Numbers Pro, and we prefer it - the lack of 'break' here is intentional
 						$normalised_results[$order_status][$order_id]['order_number'] = $res->meta_value;
 					case 'order_time_order_number':
 						if (!isset($normalised_results[$order_status][$order_id]['order_number'])) $normalised_results[$order_status][$order_id]['order_number'] = $res->meta_value;
@@ -988,6 +990,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 					$order_number = $order->get_order_number();
 					$normalised_results[$order_status][$order_id]['order_number'] = $order_number;
 					$order->update_meta_data('order_time_order_number', $order_number);
+					$order->save_meta_data();
 				}
 			}
 		}
