@@ -36,7 +36,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 			'rates_exist_and_up_to_date' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('EU', 'woocommerce-eu-vat-compliance').')',
 			'rates_exist_and_up_to_date_uk' => __('Per-country VAT rates are up-to-date', 'woocommerce-eu-vat-compliance').' ('.__('UK', 'woocommerce-eu-vat-compliance').')',
 			'exchange_rates_exist_and_up_to_date' => __('Exchange rates care up-to-date', 'woocommerce-eu-vat-compliance'),
-			'zero_rates_class_exists' => __('Zero-rates tax class exists', 'woocommerce-eu-vat-compliance'),
+			'zero_rates_class_exists' => __('Zero-rates tax class exists and contains no non-zero rates', 'woocommerce-eu-vat-compliance'),
 		);
 		
 		$this->rates_class = WooCommerce_EU_VAT_Compliance('WC_EU_VAT_Compliance_Rates');
@@ -460,10 +460,37 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		return $this->res(false, sprintf(__('The %s plugin is active, but support for subscription orders is not part of the free version of the WooCommerce VAT Compliance plugin. New orders created via subscriptions will not have VAT compliance information attached.', 'woocommerce-eu-vat-compliance'), __('RightPress Subscriptio', 'woocommerce-eu-vat-compliance')));
 	}
 	
+	/**
+	 * Check that the zero-rate tax class slug exists, and that the class itself does not contain any non-zero rates (such as case was seen on a user's site, Jan 2025)
+	 *
+	 * @uses self::res()
+	 *
+	 * @return Array - standard results format
+	 */
 	protected function zero_rates_class_exists() {
 	
 		$tax_classes = $this->compliance->get_tax_classes();
-		if (isset($tax_classes['zero-rate'])) return $this->res(true, __('The tax class "Zero Rate" exists. It is a default part of WooCommerce, and required for setting some line-item taxes to zero.', 'woocommerce-eu-vat-compliance'));
+		
+		if (isset($tax_classes['zero-rate'])) {
+			
+			global $table_prefix, $wpdb; // not relevant to HPOS
+			$sql = "SELECT tax_rate, tax_rate_country, tax_rate_class FROM ".$table_prefix."woocommerce_tax_rates WHERE tax_rate_class='zero-rate'";
+			$results = $wpdb->get_results($sql);
+			
+			$bad_rates = array();
+			if (is_array($results)) {
+				foreach ($results as $result) {
+					$rate = (float) $result->tax_rate;
+					if (0 === $rate) continue;
+					$bad_rates[] = $result->tax_rate_country;
+				}
+			}
+			
+			if (empty($bad_rates)) return $this->res(true, __('The tax class "Zero Rate" exists. It is a default part of WooCommerce, and required to exist and have no non-zero rates in it, so that some line-item taxes can be set to zero.', 'woocommerce-eu-vat-compliance'));
+			
+			return $this->res(false, __('The tax class "Zero Rate" exists, but has some entries for the following countries with non-zero rates set in it, which will prevent applying zero-rates to line items:', 'woocommerce-eu-vat-compliance').' '.implode(', ', $bad_rates));
+		}
+		
 		return $this->res(false, __('The tax class "Zero Rate" does not exist. It is a default part of WooCommerce, and required for setting some line-item taxes to zero. Go to your WooCommerce tax settings and re-create a tax class with this name.', 'woocommerce-eu-vat-compliance'));
 	
 	}

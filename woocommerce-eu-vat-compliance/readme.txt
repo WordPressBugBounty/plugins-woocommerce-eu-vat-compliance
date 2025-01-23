@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 5.3
 Tested up to: 6.7
-Stable tag: 1.32.4
+Stable tag: 1.32.5
 Requires PHP: 7.0
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -129,6 +129,12 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.32.5 - 2025-01-23 =
+
+* TWEAK: Enhance the "zero-rate" readiness test to ensure that the shop owner has not added non-zero rates to the zero-rate tax class
+* TWEAK: Update the Slovakian standard VAT rate
+* TWEAK: Update updater library to current release
 
 = 1.32.4 - 2025-01-16 =
 
@@ -1702,4 +1708,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.32.4 - Fixes issues with report generation when HPOS is active. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
+* 1.32.5 - Update zero-rate readiness test and Slovakian standard VAT rate. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
