@@ -1,5 +1,5 @@
 {
-    "last_updated": "2025-01-22T21:00:00Z",
+    "last_updated": "2025-03-06T21:00:00Z",
     "disclaimer": "This data is compiled from official European Commission sources to be as accurate as possible, however no guarantee of accuracy is provided. Use at your own risk. Don't trust random people on the internet without doing your own research.",
     "rates": {
         "AT": {
@@ -224,7 +224,7 @@
             "standard_rate": 23.00,
             "standard_rate_by_time": { "0": 20.00, "1735686000": 23.00 },
             "reduced_rate": 19.00,
-            "reduced_rate_alt": false,
+            "reduced_rate_alt": 5.00,
             "super_reduced_rate": false,
             "parking_rate": false
         },

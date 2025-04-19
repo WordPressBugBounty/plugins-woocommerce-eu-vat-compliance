@@ -31,6 +31,8 @@ class WC_VAT_Compliance_Preselect_Country {
 	
 	private $suffixing_product;
 	
+	private $current_rest_route = '';
+	
 	/**
 	 * Class constructor
 	 */
@@ -52,6 +54,8 @@ class WC_VAT_Compliance_Preselect_Country {
 			add_filter('woocommerce_get_price_suffix', array($this, 'woocommerce_get_price_suffix'), 10, 2);
 		}
 		
+		add_filter('rest_dispatch_request', array($this, 'rest_dispatch_request'), 10, 3);
+		
 		if (!is_admin()) {
 			
 			// This filter shows prices on the shop front-end
@@ -69,6 +73,20 @@ class WC_VAT_Compliance_Preselect_Country {
 			add_action('wp_footer', array($this, 'wp_debug_footer'), 999999);
 		}
 
+	}
+	
+	/**
+	 * Called by the WP filter rest_dispatch_request
+	 *
+	 * @param Mixed			  $result
+	 * @param WP_REST_Request $request
+	 * @param String		  $route
+	 *
+	 * @return Mixed
+	 */
+	public function rest_dispatch_request($result, $request, $route) {
+		$this->current_rest_route = $route;
+		return $result;
 	}
 	
 	/**
@@ -208,7 +226,7 @@ class WC_VAT_Compliance_Preselect_Country {
 	 */
 	public function woocommerce_customer_taxable_address($address) {
 
-		// This is caught (on PHP 7.0+), because wc_get_chosen_shipping_method_ids calls WC()->session->get() without checking if WC()->session is an object.
+		// This is caught because wc_get_chosen_shipping_method_ids calls WC()->session->get() without checking if WC()->session is an object.
 		try {
 			// wc_get_chosen_shipping_method_ids() is available, since it is used in the WC method calling this filter
 			if (function_exists('wc_get_chosen_shipping_method_ids') && true === apply_filters('woocommerce_apply_base_tax_for_local_pickup', true) && count(array_intersect(wc_get_chosen_shipping_method_ids(), apply_filters('woocommerce_local_pickup_methods', array('legacy_local_pickup', 'local_pickup')))) > 0) {
@@ -216,12 +234,17 @@ class WC_VAT_Compliance_Preselect_Country {
 			}
 		} catch (Error $e) {
 		
-
 			if (apply_filters('woocommerce_vat_compliance_log_woocommerce_customer_taxable_address_exceptions', true)) {
 				error_log('WC_VAT_Compliance_Preselect_Country::woocommerce_customer_taxable_address(): Caught: '.$e->getMessage().' at '.$e->getFile().' line '.$e->getLine());
 			}
 		}
-	
+
+		// N.B. WP 6.5+ only. REST is used by the block checkout, and not by the shortcode checkout. Hence, detection of the block checkout will not work correctly before WP 6.5.
+		$is_rest_request = function_exists('wp_is_rest_endpoint') && wp_is_rest_endpoint();
+		
+		// A list of REST routes that are ones that we want to treat as being part of the checkout page
+		$is_checkout_rest = $is_rest_request && in_array($this->current_rest_route, array('/wc/store/v1/cart/update-customer', '/wc/store/v1/checkout'));
+		
 		// $state = $address[1]; $postcode = $address[2]; $city = $address[3];
 		$country = isset($address[0]) ? $address[0] : '';
 
@@ -237,16 +260,18 @@ class WC_VAT_Compliance_Preselect_Country {
 		}
 
 		// Checkout or cart context?
-		if ((function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart()) || defined('WOOCOMMERCE_CHECKOUT') || defined('WOOCOMMERCE_CART')) {
+		if ($is_checkout_rest || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart()) || defined('WOOCOMMERCE_CHECKOUT') || defined('WOOCOMMERCE_CART')) {
 
 			// Processing of checkout form activity - get from session only
-			$allow_from_widget_or_request = (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT) ? true : false;
+			$allow_from_widget_or_request = (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT) && (!function_exists('is_checkout') || !is_checkout()) ? true : false;
+			if ($is_checkout_rest) $allow_from_widget_or_request = false;
 			
 			// This excludes the final checkout processing case - i.e. includes only the pages
-			$allow_default = ((function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart())) && (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT);
-			
+			$allow_default = ($is_checkout_rest || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart())) && (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT);
+
 			// On the cart or checkout, don't use a GeoIP lookup; don't allow use of the widget on the checkout
 			$vat_country = $this->get_preselect_country(false, $allow_from_widget_or_request, $allow_from_widget_or_request, true, $allow_default);
+
 			if (!empty($vat_country) && $country != $vat_country) {
 				return array($vat_country, $vat_state, '', '');
 			}
@@ -255,10 +280,11 @@ class WC_VAT_Compliance_Preselect_Country {
 
 		// If we reach here, we are neither on the cart nor the checkout; we allow a different range of possibilities for deciding the country to use.
 		$vat_country = $this->get_preselect_country(true);
+
 		if (!empty($vat_country) && $country != $vat_country) {
 			return array($vat_country, $vat_state, '', '');
 		}
-		
+
 		return $address;
 
 	}

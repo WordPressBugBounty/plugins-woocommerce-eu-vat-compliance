@@ -29,6 +29,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 		add_action('woocommerce_order_after_calculate_totals', array($this, 'woocommerce_order_after_calculate_totals'), 99, 2);
 		
 		add_action('wp_ajax_wc_vat_get_vat_meta_box', array($this, 'ajax_wc_vat_get_vat_meta_box'));
+		add_action('wp_ajax_wc_vat_get_export_order_info', array($this, 'ajax_wc_vat_get_export_order_info'));
 		
 		$this->compliance = WooCommerce_EU_VAT_Compliance();
 
@@ -39,10 +40,31 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 	 */
 	public function ajax_wc_vat_get_vat_meta_box() {
 		
-		if (empty($_POST) || !isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wc_vat_meta_box_nonce') || empty($_POST['order_id'])) die('Security check');
+		if (empty($_POST) || !isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wc_vat_meta_box_nonce') || empty($_POST['order_id'])  || !is_numeric($_POST['order_id'])) die('Security check');
 		$this->print_order_vat_info(absint($_POST['order_id']));
 		
 		die();
+		
+	}
+	
+	/**
+	 * Runs upon the WC action wc_vat_get_export_order_info
+	 */
+	public function ajax_wc_vat_get_export_order_info() {
+		
+		if (empty($_POST) || !isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wc_vat_get_export_order_info_nonce') || empty($_POST['order_id']) || !is_numeric($_POST['order_id'])) die('Security check');
+		
+		$order_id = absint($_POST['order_id']);
+		
+		if (!class_exists('WC_VAT_Compliance_Order_Export')) require_once WC_VAT_COMPLIANCE_DIR.'/includes/vat-compliance-order-export.php';
+		
+		$export_info = WC_VAT_Compliance_Order_Export::get_export_data($order_id, ['clean_pii' => false, 'include_all_meta' => true, 'include_order_notes' => true]);
+		
+		if (is_wp_error($export_info)) {
+			die(json_encode(array('error' => $export_info->get_error_message(), 'error_code' => $export_info->get_error_code())));
+		}
+		
+		die(json_encode(array('payload' => $export_info)));
 		
 	}
 	
@@ -121,6 +143,39 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 		echo "<script>
 		jQuery(function($) {
 		
+			$('.wc_vat_export_order_info').on('click', function(e) {
+				e.preventDefault();
+				var order_id = $(this).data('order-id');
+				var data = {
+					action: 'wc_vat_get_export_order_info',
+					order_id: order_id,
+					_wpnonce: '".wp_create_nonce('wc_vat_get_export_order_info_nonce')."'
+				};
+				$.post(ajaxurl, data, function(response) {
+
+					response = JSON.parse(response);
+					
+					if ('undefined' !== typeof response.error) {
+						alert(response.error);
+						return;
+					}
+					
+					if ('undefined' === typeof response.payload) {
+						alert('".esc_js(__('Invalid response received (full details logged to the browser console).', 'woocommerce-eu-vat-compliance'))."');
+						console.log(response);
+						return;
+					}
+				
+					const date = new Date().toISOString().split('T')[0]; // Gets the date in YYYY-MM-DD format
+					const filename = 'vat-order-'+order_id+'-export_'+date+'.json';
+					const blob = new Blob([JSON.stringify(response.payload)], { type: 'application/json' });
+					const link = document.createElement('a');
+					link.href = URL.createObjectURL(blob);
+					link.download = filename;
+					link.click();
+				});
+			});
+		
 			var reload_meta_box = function() {
 				var data = {
 					action: 'wc_vat_get_vat_meta_box',
@@ -142,7 +197,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 			$(document.body).on('order-totals-recalculate-success', function() {
 				$('#wc_eu_vat_vat_meta .inside').html('<em>".__('Updating...', 'woocommerce-eu-vat-compliance')."</em>');
 				reload_meta_box();
-				});
+			});
 		});
 		</script>";
 		
@@ -680,18 +735,18 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 			
 			if (!empty($country_info['taxable_address_self_certified'])) echo ' ('.__('self-certified', 'woocommerce-eu-vat-compliance').')';
 
-			echo "</span><br>";
+			echo "</span>\n<br>\n";
 
 			echo __('IP Country:', 'woocommerce-eu-vat-compliance')." $country_name ($country_code)";
-			echo ' - <span title="'.esc_attr($source).'">'.__('source:', 'woocommerce-eu-vat-compliance')." ".htmlspecialchars($source_description)."</span><br>";
+			echo ' - <span title="'.esc_attr($source).'">'.__('source:', 'woocommerce-eu-vat-compliance')." ".htmlspecialchars($source_description)."</span><br>\n";
 
-			echo '</span>';
+			echo '</span>'."\n";
 
 		}
 
-		// $time
-		echo "</p>";
+		echo "</p>\n";
 
+		echo '<p><a href="#" class="wc_vat_export_order_info" data-order-id="'.esc_attr($order_id).'" title="'.__('Use this to export information on the order in a format suitable for auditing or forensic examination, e.g. in debugging issues.', 'woocommerce-eu-vat-compliance').'">'.__('Export order info...', 'woocommerce-eu-vat-compliance').'</a></p>';
 	}
 
 }

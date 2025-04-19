@@ -279,10 +279,10 @@ class WC_VAT_Compliance_Reports_UI {
 				$print_fields = array('page', 'tab', 'report', 'chart');
 				$hidden_tab_value = 'reports';
 				foreach ($print_fields as $field) {
-					if (isset($_REQUEST[$field])) {
-						if ('tab' == $field) $hidden_tab_value = 'taxes';
-						echo '<input type="hidden" name="'.$field.'" value="'.esc_attr($_REQUEST[$field]).'">'."\n";
-					}
+					if (!isset($_REQUEST[$field]) || !is_string($_REQUEST[$field])) continue;
+					
+					if ('tab' == $field) $hidden_tab_value = 'taxes';
+					echo '<input type="hidden" name="'.esc_attr($field).'" value="'.esc_attr(stripslashes($_REQUEST[$field])).'">'."\n";
 				}
 
 				echo '<input type="hidden" name="tab" value="'.esc_attr($hidden_tab_value).'">'."\n";

@@ -10,6 +10,8 @@ if (class_exists('WC_EU_VAT_Compliance')) return;
 define('WC_VAT_COMPLIANCE_DIR', dirname(__FILE__));
 define('WC_VAT_COMPLIANCE_URL', plugins_url('', __FILE__));
 
+define('VAT_BLOCK_IDENTIFIER', 'wc-vat-compliance-vat-block');
+
 $active_plugins = (array) get_option( 'active_plugins', array() );
 if (is_multisite()) $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
 
@@ -870,7 +872,7 @@ class WC_EU_VAT_Compliance {
 		if (false === $customer && !empty($this->wc->customer)) $customer = $this->wc->customer;
 
 		if (method_exists($tax, 'get_tax_location')) {
-			$taxable_address = $tax->get_tax_location($customer);
+			$taxable_address = $tax->get_tax_location('', $customer);
 		} elseif (method_exists($customer, 'get_taxable_address')) {
 			$taxable_address = $customer->get_taxable_address();
 		} else {
@@ -1151,10 +1153,10 @@ class WC_EU_VAT_Compliance {
 		$order_id = $order->get_id();
 
 		static $vat_paid_info = null;
-		static $vat_paid_post_id = null;
+		static $vat_paid_order_id = null;
 		
 		if ($allow_quick) {
-			if (!empty($vat_paid_post_id) && $vat_paid_post_id == $order_id && !empty($vat_paid_info)) {
+			if (!empty($vat_paid_order_id) && $vat_paid_order_id == $order_id && !empty($vat_paid_info)) {
 				$vat_paid = $vat_paid_info;
 			} else {
 				$vat_paid = $order->get_meta('vat_compliance_vat_paid', true);
@@ -1330,7 +1332,7 @@ Array
 			$order->save();
 		}
 
-		$vat_paid_post_id = $order_id;
+		$vat_paid_order_id = $order_id;
 		$vat_paid_info = $vat_paid;
 
 		return $vat_paid;

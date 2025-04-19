@@ -1,9 +1,9 @@
 === European VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
 Requires at least: 5.3
-Tested up to: 6.7
-Stable tag: 1.32.5
-Requires PHP: 7.0
+Tested up to: 6.8
+Stable tag: 1.34.0
+Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
 Donate link: https://david.dw-perspective.org.uk/donate
@@ -129,6 +129,34 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.34.0 - 2025-04-19 =
+
+* FEATURE: When performing VAT number validations upon subscription renewal, exempt from taxes (requires Subscriptio 0.12.11 or later) if the user is still VAT exempt based upon a fresh look-up
+* TWEAK: When performing VAT number validations upon subscription renewal, prefer the most recent VAT number, trust the previous order's look-up less, record unsuccessful results with more detail, and do not retain information from previous lookups
+* TWEAK: Prevent a PHP notice upon order placement if using the block checkout with no shipping required
+* TWEAK: Prevent a PHP deprecation notice on PHP 8.2+ when self-certifying
+* TWEAK: On the WooCommerce block checkout, do not save an empty VAT number in the customer object
+* TWEAK: Upon subscription renewal orders, VAT lookups for Norway and Switzerland should have their meta-data saved under the vat_lookup_response key
+* TWEAK: On the WooCommerce block checkout, do not prefix the country prefix to a VAT number that already has it
+* TWEAK: Pass indicated customer correctly to WC_Tax::get_tax_location() when getting a taxable address
+* FIX: Do not fetch taxation country from illegitimate/unavailable sources when processing a block checkout
+
+= 1.33.2 - 2025-04-16 =
+
+* FIX: When processing a renewal order within a subscription, WC_Order::save_meta_data() was not being called, resulting in updated VAT number information potentially not making it to the database.
+
+= 1.33.1 - 2025-04-07 =
+
+* FEATURE: Add an export link from the VAT information meta-box on dashboard order screens allowing easy export of all related information for an order (to aid auditing and debugging)
+* COMPATIBILITY: Now requires PHP 7.1+ (previously required 7.0+)
+* FIX: Block-based checkout displayed notice but did not prevent order placement when settings required that the customer IP address and taxation address agreed and they did not
+* TWEAK: When a notice was shown at the checkout indicating the need for customer IP address and taxation address to agree, and the taxation address was also outside of any configured VAT zone, display the correct region adjective instead of ??.
+* TWEAK: Add a Slovakian alternative reduced VAT rate
+
+= 1.32.6 - 2025-02-04 =
+
+* FIX: The enhanced readiness test in 1.32.5 should have used loose, not strict, PHP comparison type to handle 0 and 0.0 identically.
 
 = 1.32.5 - 2025-01-23 =
 
@@ -1708,4 +1736,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.32.5 - Update zero-rate readiness test and Slovakian standard VAT rate. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
+* 1.34.0 Various improvements and fixes relating to the block checkout and handling of tax changes between a subscription renewal order and prior order. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.

@@ -481,7 +481,8 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 			if (is_array($results)) {
 				foreach ($results as $result) {
 					$rate = (float) $result->tax_rate;
-					if (0 === $rate) continue;
+					// Don't use a strict comparison (unless specifying as 0.0)
+					if (0 == $rate) continue;
 					$bad_rates[] = $result->tax_rate_country;
 				}
 			}
