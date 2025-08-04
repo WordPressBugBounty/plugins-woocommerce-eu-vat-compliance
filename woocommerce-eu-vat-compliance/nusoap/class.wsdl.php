@@ -74,7 +74,7 @@ class wsdl extends nusoap_base {
 	 * @param boolean $use_curl try to use cURL
      * @access public 
      */
-    function __construct($wsdl = '',$proxyhost=false,$proxyport=false,$proxyusername=false,$proxypassword=false,$timeout=0,$response_timeout=30,$curl_options=null,$use_curl=false){
+    public function __construct($wsdl = '',$proxyhost=false,$proxyport=false,$proxyusername=false,$proxypassword=false,$timeout=0,$response_timeout=30,$curl_options=null,$use_curl=false){
 		parent::__construct();
 		$this->debug("ctor wsdl=$wsdl timeout=$timeout response_timeout=$response_timeout");
         $this->proxyhost = $proxyhost;
@@ -273,11 +273,9 @@ class wsdl extends nusoap_base {
         // Set the options for parsing the XML data.
         // xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
         xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0); 
-        // Set the object for the parser.
-        xml_set_object($this->parser, $this); 
         // Set the element handlers for the parser.
-        xml_set_element_handler($this->parser, 'start_element', 'end_element');
-        xml_set_character_data_handler($this->parser, 'character_data');
+        xml_set_element_handler($this->parser, array($this, 'start_element'), array($this, 'end_element'));
+        xml_set_character_data_handler($this->parser, array($this, 'character_data'));
         // Parse the XML file.
         if (!xml_parse($this->parser, $wsdl_string, true)) {
             // Display an error message.
@@ -306,7 +304,7 @@ class wsdl extends nusoap_base {
     /**
      * start-element handler
      * 
-     * @param string $parser XML parser object
+     * @param object $parser XML parser object
      * @param string $name element name
      * @param string $attrs associative array of attributes
      * @access private 
@@ -520,7 +518,7 @@ class wsdl extends nusoap_base {
 	/**
 	* end-element handler
 	* 
-	* @param string $parser XML parser object
+	* @param object $parser XML parser object
 	* @param string $name element name
 	* @access private 
 	*/
@@ -554,7 +552,7 @@ class wsdl extends nusoap_base {
 	 * @param string $data element content
 	 * @access private 
 	 */
-	function character_data($parser, $data)
+	public function character_data($parser, $data)
 	{
 		$pos = isset($this->depth_array[$this->depth]) ? $this->depth_array[$this->depth] : 0;
 		if (isset($this->message[$pos]['cdata'])) {

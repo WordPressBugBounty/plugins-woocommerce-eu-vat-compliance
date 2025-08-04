@@ -164,7 +164,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 
 			if (empty($_POST['settings']) || !is_string($_POST['settings'])) die;
 
-			parse_str($_POST['settings'], $posted_settings);
+			parse_str(stripslashes($_POST['settings']), $posted_settings);
 			
 			$posted_settings = stripslashes_deep($posted_settings);
 
@@ -317,9 +317,22 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				'result' => 'ok',
 				'content' => $contents
 			));
+		} elseif ('load_readiness_tab' === $_POST['subaction']) {
+			ob_start();
+			$this->render_tab_readiness_table();
+			$contents = @ob_get_contents();
+			@ob_end_clean();
+			
+			echo json_encode(array(
+				'result' => 'ok',
+				'content' => $contents
+			));
+			
 		} elseif ('export_settings' == $_POST['subaction']) {
 		
-			$plugin_version = WooCommerce_EU_VAT_Compliance()->get_version();
+			$compliance = WooCommerce_EU_VAT_Compliance();
+			
+			$plugin_version = $compliance->get_version();
 
 			include(ABSPATH.WPINC.'/version.php');
 
@@ -332,14 +345,19 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				$options[$id] = get_option($id);
 			}
 			
-			$options['woocommerce_default_country'] = WC()->countries->get_base_country();
+			$options['woocommerce_base_country'] = WC()->countries->get_base_country();
 			
 			$results = array(
 				'options' => $options,
 				'versions' => array(
 					'wc' => defined('WOOCOMMERCE_VERSION') ? WOOCOMMERCE_VERSION : '?',
-					'wc_eu_vat_compliance' => '?',
+					'wc_vat_compliance' => '?',
 					'wp' => $wp_version
+				),
+				'features' => array(
+					'hpos_enabled' => $compliance->woocommerce_custom_order_tables_enabled(),
+					'checkout_page_using_shortcode' => $compliance->checkout_page_uses_shortcode(),
+					'cart_page_using_shortcode' => $compliance->cart_page_uses_shortcode(),
 				),
 			);
 			
@@ -482,7 +500,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			'premium' => __('Premium', 'woocommerce-eu-vat-compliance')
 		));
 
-		$active_tab = !empty($_REQUEST['tab']) ? $_REQUEST['tab'] : 'settings';
+		$active_tab = empty($_REQUEST['tab']) ? 'settings' : stripslashes($_REQUEST['tab']);
 		if ('taxes' == $active_tab || !empty($_GET['range'])) $active_tab = 'reports';
 
 		$this->compliance = WooCommerce_EU_VAT_Compliance();
@@ -524,14 +542,14 @@ class WC_EU_VAT_Compliance_Control_Centre {
 
 		foreach ($tabs as $slug => $title) {
 			?>
-				<a class="nav-tab <?php if($slug == $active_tab) echo 'nav-tab-active'; ?>" href="#wceuvat-navtab-<?php echo $slug;?>-content" id="wceuvat-navtab-<?php echo $slug;?>"><?php echo $title;?></a>
+				<a class="nav-tab <?php if ($slug == $active_tab) echo 'nav-tab-active'; ?>" href="#wceuvat-navtab-<?php echo esc_attr($slug);?>-content" id="wceuvat-navtab-<?php echo esc_attr($slug);?>"><?php echo esc_html($title);?></a>
 			<?php
 		}
 
 		echo '</h2>';
 
 		foreach ($tabs as $slug => $title) {
-			echo "<div class=\"wceuvat-navtab-content\" id=\"wceuvat-navtab-".$slug."-content\"";
+			echo "<div class=\"wceuvat-navtab-content\" id=\"wceuvat-navtab-".esc_attr($slug)."-content\"";
 			if ($slug != $active_tab) echo ' style="display:none;"';
 			echo ">";
 
@@ -1449,32 +1467,52 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		
 		echo '<p>'.esc_html__("N.B. If you are not selling goods for which the \"place of supply\" is deemed to be the customer's location (rather than the seller's; e.g. electronically supplied goods), then the tests for the presence of up-to-date VAT per-country rates are not relevant and you should not use them.", 'woocommerce-eu-vat-compliance').'</p>';
 
+		// This is populated via AJAX so that the tests don't have to be done upon each settings page load
+		echo '<div id="wcvat_readiness_results_table_container"></div>';
+	
+		// N.B. This is duplicated in render_tab_readiness(); keep them in sync.
+		$opts = get_option('wceuvat_background_tests');
+		$email = empty($opts['email']) ? '' : (string) $opts['email'];
+		
+		$default_bottom_blurb = '<p><a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.esc_html__('To automatically run these tests daily, and notify yourself of any failed tests by email, use our Premium version.', 'woocommerce-eu-vat-compliance').'</a></p>';
+		$bottom_blurb = apply_filters('wceuvat_readinesstests_bottom_section', $default_bottom_blurb, $email);
+		
+		echo $bottom_blurb;
+
+		echo '</div>';
+
+	}
+
+	/**
+	 * Output the readiness test result table
+	 */
+	private function render_tab_readiness_table() {
 		if (!class_exists('WC_EU_VAT_Compliance_Readiness_Tests')) require_once(WC_VAT_COMPLIANCE_DIR.'/readiness-tests.php');
 		$test = new WC_EU_VAT_Compliance_Readiness_Tests();
 		$results = $test->get_results();
-
+		
 		$result_descriptions = $test->result_descriptions();
-
+		
 		?>
 		<table>
 		<thead>
-			<tr>
-				<th></th>
-				<th style="text-align:left; min-width: 140px;"><?php _e('Test', 'woocommerce-eu-vat-compliance');?></th>
-				<th style="text-align:left; min-width:60px;"><?php _e('Result', 'woocommerce-eu-vat-compliance');?></th>
-				<th style="text-align:left;"><?php _e('Futher information', 'woocommerce-eu-vat-compliance');?></th>
-			</tr>
+		<tr>
+		<th></th>
+		<th style="text-align:left; min-width: 140px;"><?php _e('Test', 'woocommerce-eu-vat-compliance');?></th>
+		<th style="text-align:left; min-width:60px;"><?php _e('Result', 'woocommerce-eu-vat-compliance');?></th>
+		<th style="text-align:left;"><?php _e('Futher information', 'woocommerce-eu-vat-compliance');?></th>
+		</tr>
 		</thead>
 		<tbody>
 		<?php
-
+		
+		// N.B. This is duplicated in render_tab_readiness(); keep them in sync.
 		$opts = get_option('wceuvat_background_tests');
-		$email = empty($opts['email']) ? '' : (string)$opts['email'];
-
+		$email = empty($opts['email']) ? '' : (string) $opts['email'];
 		$default_bottom_blurb = '<p><a href="https://www.simbahosting.co.uk/s3/product/woocommerce-eu-vat-compliance/">'.esc_html__('To automatically run these tests daily, and notify yourself of any failed tests by email, use our Premium version.', 'woocommerce-eu-vat-compliance').'</a></p>';
 		$bottom_blurb = apply_filters('wceuvat_readinesstests_bottom_section', $default_bottom_blurb, $email);
 		$premium_present = ($bottom_blurb == $default_bottom_blurb) ? false : true;
-
+		
 		foreach ($results as $id => $res) {
 			if (!is_array($res)) continue;
 			// result, label, info
@@ -1493,35 +1531,31 @@ class WC_EU_VAT_Compliance_Control_Centre {
 					break;
 			}
 			$row_bg = 'color:'.$col;
-
+			
 			$checked = (is_array($opts) && empty($opts['tests'][$id])) ? false : true;
-
+			
 			?>
-
-			<tr style="<?php echo $row_bg;?>">
-				<td style="vertical-align:top;"><?php
-				if ($premium_present) { ?>
-					<input type="checkbox" id="wceuvat_test_<?php echo esc_attr($id);?>" name="wceuvat_test_<?php echo esc_attr($id);?>" value="1" <?php if ($checked) echo 'checked="checked"'; ?>>
+			
+			<tr style="<?php echo esc_attr($row_bg);?>">
+			<td style="vertical-align:top;"><?php
+			if ($premium_present) { ?>
+				<input type="checkbox" id="wceuvat_test_<?php echo esc_attr($id);?>" name="wceuvat_test_<?php echo esc_attr($id);?>" value="1" <?php if ($checked) echo 'checked="checked"'; ?>>
 				<?php } ?>
 				</td>
 				<td style="vertical-align:top;"><label for="wceuvat_test_<?php echo esc_attr($id);?>"><?php echo $res['label'];?></label></td>
 				<td style="vertical-align:top;"><?php echo $result_descriptions[$res['result']];?></td>
 				<td style="vertical-align:top;"><?php echo $res['info'];?></td>
-			</tr>
-			<?php
+				</tr>
+				<?php
 		}
-
+		
 		?>
 		</tbody>
 		</table>
+		
 		<?php
-
-		echo $bottom_blurb;
-
-		echo '</div>';
-
 	}
-
+	
 	/**
 	 * Called by the WP action admin_footer when on our settings page
 	 */
@@ -1531,7 +1565,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 		$test = esc_js(__('Test Provider', 'woocommerce-eu-vat-compliance'));
 		$nonce = wp_create_nonce("wc_eu_vat_nonce");
 		$response = esc_js(__('Response:', 'woocommerce-eu-vat-compliance'));
-		$loading = esc_js(__('Loading...', 'woocommerce-eu-vat-compliance'));
+		$loading = esc_js(__('Running readiness tests...', 'woocommerce-eu-vat-compliance'));
 		$error = esc_js(__('Error', 'woocommerce-eu-vat-compliance'));
 
 		echo '
@@ -1668,28 +1702,36 @@ class WC_EU_VAT_Compliance_Control_Centre {
 						$('div.wceuvat-navtab-content').hide();
 						$('#wceuvat-navtab-'+id.substring(15)+'-content').show();
 						// This is not yet ready
-// 						$('#wceuvat_tabs').trigger('show_'+id.substring(15));
+						$('#wceuvat_tabs').trigger('show_'+id.substring(15));
 					}
 					return false;
 				});
 				
-				var content_loaded = false;
-				$('#wceuvat_tabs').on('show_reports', function() {
-					if (content_loaded) return;
-					content_loaded = true;
-					$('#wceuvat-navtab-reports-content').html('$loading');
+				var readiness_content_loaded = false;
+				
+				$('#wceuvat_tabs').on('show_readiness', function() {
+				
+					if (readiness_content_loaded) return;
+					
+					readiness_content_loaded = true;
+		
+					jQuery.blockUI({ message: "<h1>$loading</h1>" });
+		
+					$('#wcvat_readiness_results_table_container').html('$loading');
+					
 					$.post(ajaxurl, {
 						action: "wc_eu_vat_cc",
-						subaction: 'load_reports_tab',
+						subaction: 'load_readiness_tab',
 						_wpnonce: '$nonce'
 					}, function(response) {
 						resp = JSON.parse(response);
 						if (resp.result == 'ok') {
-							$('#wceuvat-navtab-reports-content').html(resp.content);
+							$('#wcvat_readiness_results_table_container').html(resp.content);
 						} else {
-							$('#wceuvat-navtab-reports-content').html('$error');
+							$('#wcvat_readiness_results_table_container').html('$error');
 							console.log(resp);
 						}
+						jQuery.unblockUI();
 					});
 				});
 				

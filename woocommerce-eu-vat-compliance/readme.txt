@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 5.3
 Tested up to: 6.8
-Stable tag: 1.34.0
+Stable tag: 1.35.5
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -130,9 +130,53 @@ This is not strictly an EU/UK VAT compliance issue, and as such, does not come u
 
 == Changelog ==
 
+= 1.35.5 - 2025-08-04 =
+
+* TWEAK: Update VAT rates for Romania
+
+= 1.35.4 - 2025-08-01 =
+
+* TWEAK: When pre-filling the checkout page, if the VAT number was stored with a double-prefix, then fix it
+* TWEAK: Update VAT rate for Estonia
+
+= 1.35.3 - 2025-07-09 =
+
+* TWEAK: Use WC_Order::save_meta_data() instead of WC_Order::save() in WC_EU_VAT_Compliance_Record_Order_Details to avoid unnecessary database updates
+
+= 1.35.2 - 2025-06-25 =
+
+* FIX: Invalidate the cart total calcuation cache if the cart hash has changed, fixing the issue of "exemption based upon value" calculations on the shortcode-based 'cart' page being based upon the pre-updated cart during an update operation
+* TWEAK: Run readiness tests upon loading of the 'Readiness Report' tab instead of upon page loading, for quicker page loading and avoidance of unnecessary network calls.
+* TWEAK: In the order and settings exports, include information on whether the designated cart page uses the cart shortcode
+
+= 1.35.1 - 2025-06-17 =
+
+* FIX: Fix incorrect reference to customer object during PayPal official extension off-site checkout
+* TWEAK: In the order and settings exports, include information on whether the designated checkout page uses the checkout shortcode
+* TWEAK: In the settings export, rename woocommerce_default_country to woocommerce_base_country and wc_eu_vat_compliance to wc_vat_compliance
+
+= 1.35.0 - 2025-06-11 =
+
+* FIX: Fix regression on the block checkout by which changes to the VAT number field were not feeding back to the "Order Review" section
+* TWEAK: Provide more information in some cases of WSDL layer setup failure
+* TWEAK: Replace use of xml_set_object() in nusoap code to resolve PHP 8.4 deprecations
+* TWEAK: Mark as supporting WooCommerce 4.8+ (nothing has been changed to stop supporting previous versions; but this is now the official support requirement)
+
+= 1.34.3 - 2025-04-30 =
+
+* FIX: A further fix for the official WooCommerce PayPal extension; customer VAT exemptions were not applied on the non-standard AJAX call
+
+= 1.34.2 - 2025-04-26 =
+
+* FIX: The official WooCommerce PayPal extension uses a non-standard AJAX call when calculating order totals, resulting in possible incorrect context-dependent identification of taxation country
+
+= 1.34.1 - 2025-04-22 =
+
+* TWEAK: In the "VAT compliance information" meta-box, the status had regressed to being shown where the VAT number should have been displaying
+
 = 1.34.0 - 2025-04-19 =
 
-* FEATURE: When performing VAT number validations upon subscription renewal, exempt from taxes (requires Subscriptio 0.12.11 or later) if the user is still VAT exempt based upon a fresh look-up
+* FEATURE: When performing VAT number validations upon subscription renewal, exempt from taxes (requires Subscriben 0.12.11 or later) if the user is still VAT exempt based upon a fresh look-up
 * TWEAK: When performing VAT number validations upon subscription renewal, prefer the most recent VAT number, trust the previous order's look-up less, record unsuccessful results with more detail, and do not retain information from previous lookups
 * TWEAK: Prevent a PHP notice upon order placement if using the block checkout with no shipping required
 * TWEAK: Prevent a PHP deprecation notice on PHP 8.2+ when self-certifying
@@ -1736,4 +1780,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.34.0 Various improvements and fixes relating to the block checkout and handling of tax changes between a subscription renewal order and prior order. Also - since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
+* 1.35.5 - Update VAT rates. N.B. Since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.

@@ -1,5 +1,5 @@
 {
-    "last_updated": "2025-03-06T21:00:00Z",
+    "last_updated": "2025-08-04T12:00:00Z",
     "disclaimer": "This data is compiled from official European Commission sources to be as accurate as possible, however no guarantee of accuracy is provided. Use at your own risk. Don't trust random people on the internet without doing your own research.",
     "rates": {
         "AT": {
@@ -61,8 +61,8 @@
         },
         "EE": {
             "country": "Estonia",
-            "standard_rate": 22.00,
-            "standard_rate_by_time": { "0": 20.00, "1704063600": 22.00 },
+            "standard_rate": 24.00,
+            "standard_rate_by_time": { "0": 20.00, "1704063600": 22.00, "1751324400": 24.00 },
             "reduced_rate": 9.00,
             "reduced_rate_alt": false,
             "super_reduced_rate": false,
@@ -205,9 +205,11 @@
         },
         "RO": {
             "country": "Romania",
-            "standard_rate": 19.00,
-            "reduced_rate": 9.00,
-            "reduced_rate_alt": 5.00,
+            "standard_rate": 21.00,
+            "standard_rate_by_time": { "0": 19.00, "1754002800": 21.00 },
+            "reduced_rate": 11.00,
+            "reduced_rate_by_time": { "0": 9.00, "1754002800": 11.00 },
+            "reduced_rate_alt": false,
             "super_reduced_rate": false,
             "parking_rate": false
         },

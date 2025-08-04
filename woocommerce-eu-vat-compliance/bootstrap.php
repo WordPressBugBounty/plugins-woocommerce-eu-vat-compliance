@@ -100,7 +100,7 @@ class WC_EU_VAT_Compliance {
 		add_action('plugins_loaded', array($this, 'load_updater'), 0);
 
 		// Update customer vat location on updating address on block checkout.
-		add_action('woocommerce_store_api_cart_update_customer_from_request', array($this, 'update_customer_vat_location'), 10, 2);
+		add_action('woocommerce_store_api_cart_update_customer_from_request', array($this, 'update_customer_vat_location'));
 	}
 	
 	/**
@@ -242,12 +242,12 @@ class WC_EU_VAT_Compliance {
 	}
 
 	/**
-	 * Update customer vat location for update tax
+	 * Update customer VAT location for update tax
 	 *
 	 * @param WC_Customer     $customer Customer object.
-	 * @param WP_REST_Request $request Request object.
 	 */
-	public function update_customer_vat_location(\WC_Customer $customer, \WP_REST_Request $request) {
+	public function update_customer_vat_location(\WC_Customer $customer) {
+		
 		$validation_util = new Automattic\WooCommerce\StoreApi\Utilities\ValidationUtils();
 		$vat_controller = WooCommerce_EU_VAT_Compliance('WC_EU_VAT_Compliance_VAT_Number');
 
@@ -260,7 +260,7 @@ class WC_EU_VAT_Compliance {
 		 * There's a bug in WooCommerce core in which not having a state ("") would result in us validating against the store's state.
 		 * This resets the state to an empty string if it doesn't match the country.
 		 */
-		if ( !$validation_util->validate_state( $billing_state, $billing_country ) ) {
+		if (!$validation_util->validate_state($billing_state, $billing_country)) {
 			$billing_state = '';
 		}
 
@@ -309,13 +309,11 @@ class WC_EU_VAT_Compliance {
 		// Check if the VAT number has validity. if the VAT number was stored previously.
 		if (!empty($vat_number) && $vat_controller) {
 			$check_result = $vat_controller->check_vat_number_validity($country, $vat_number, false, true);
-
-			if (empty($check_result['vat_number_accepted'])) {
-				$vat_number = null;
-
-				// Remove vat number if it's not valid vat number.
-				$this->wc->session->set('vat_number', null);
-			}
+		}
+		if (!isset($check_result) || empty($check_result['vat_number_accepted'])) {
+			$vat_number = null;
+			// Do not store invalid VAT numbers in the session
+			$this->wc->session->set('vat_number', null);
 		}
 
 		$form_data['vat_number'] = $vat_number;
@@ -1640,6 +1638,42 @@ Array
 			return apply_filters('woocommerce_vat_compliance_custom_order_tables_enabled', true);
 		}
 		return false;
+	}
+	
+	/**
+	 * See if the designated checkout page uses the checkout shortcode.
+	 * N.B. Theoretically the designated checkout page might not actually be the one the site uses; a custom checkout may be in use, etc.
+	 *
+	 * @return Boolean
+	 */
+	public function checkout_page_uses_shortcode() {
+		
+		$checkout_id = wc_get_page_id('checkout');
+		
+		// No checkout page found
+		if ($checkout_id <= 0) return false;
+		
+		$content = get_post_field('post_content', $checkout_id);
+		
+		return has_shortcode($content, 'woocommerce_checkout');
+	}
+	
+	/**
+	 * See if the designated cart page uses the cart shortcode.
+	 * N.B. Theoretically the designated cart page might not actually be the one the site uses; a custom cart may be in use, etc.
+	 *
+	 * @return Boolean
+	 */
+	public function cart_page_uses_shortcode() {
+		
+		$cart_id = wc_get_page_id('cart');
+		
+		// No cart page found
+		if ($cart_id <= 0) return false;
+		
+		$content = get_post_field('post_content', $cart_id);
+		
+		return has_shortcode($content, 'woocommerce_cart');
 	}
 	
 	/**

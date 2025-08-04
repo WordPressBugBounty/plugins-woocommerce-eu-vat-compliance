@@ -91,11 +91,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 	 */
 	protected function res($result, $info) {
 		if (is_bool($result)) {
-			if ($result) {
-				$rescode = 'pass';
-			} else {
-				$rescode = 'fail';
-			}
+			$rescode = $result ? 'pass' : 'fail';
 		} else {
 			$rescode = 'unknown';
 		}
@@ -114,7 +110,7 @@ class WC_EU_VAT_Compliance_Readiness_Tests {
 		
 		$minimum_supported_wc_version = '3.8';
 		
-		$result = (defined('WOOCOMMERCE_VERSION') && version_compare(WOOCOMMERCE_VERSION, $minimum_supported_wc_version, '>='));
+		$result = defined('WOOCOMMERCE_VERSION') && version_compare(WOOCOMMERCE_VERSION, $minimum_supported_wc_version, '>=');
 		if ($result) {
 			// translators: a version number
 			$info = sprintf(__('Your WooCommerce version (%s) is supported by this plugin with all features.', 'woocommerce-eu-vat-compliance'), WOOCOMMERCE_VERSION);

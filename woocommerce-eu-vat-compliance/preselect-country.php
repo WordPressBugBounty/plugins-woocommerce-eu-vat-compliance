@@ -245,6 +245,9 @@ class WC_VAT_Compliance_Preselect_Country {
 		// A list of REST routes that are ones that we want to treat as being part of the checkout page
 		$is_checkout_rest = $is_rest_request && in_array($this->current_rest_route, array('/wc/store/v1/cart/update-customer', '/wc/store/v1/checkout'));
 		
+		// wc-ajax=ppc-create-order : call made by https://wordpress.org/plugins/woocommerce-paypal-payments/ ; on the back-end it uses the PayPal API to create an order, and returns the ID back to the front-end, which can then access a PayPal pop-up for that order. Thus it has to be treated as a checkout-context.
+		$is_checkout_request = $is_checkout_rest || (isset($_REQUEST['wc-ajax']) && in_array($_REQUEST['wc-ajax'], array('ppc-create-order')));
+		
 		// $state = $address[1]; $postcode = $address[2]; $city = $address[3];
 		$country = isset($address[0]) ? $address[0] : '';
 
@@ -260,14 +263,14 @@ class WC_VAT_Compliance_Preselect_Country {
 		}
 
 		// Checkout or cart context?
-		if ($is_checkout_rest || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart()) || defined('WOOCOMMERCE_CHECKOUT') || defined('WOOCOMMERCE_CART')) {
+		if ($is_checkout_request || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart()) || defined('WOOCOMMERCE_CHECKOUT') || defined('WOOCOMMERCE_CART')) {
 
 			// Processing of checkout form activity - get from session only
 			$allow_from_widget_or_request = (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT) && (!function_exists('is_checkout') || !is_checkout()) ? true : false;
-			if ($is_checkout_rest) $allow_from_widget_or_request = false;
+			if ($is_checkout_request) $allow_from_widget_or_request = false;
 			
 			// This excludes the final checkout processing case - i.e. includes only the pages
-			$allow_default = ($is_checkout_rest || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart())) && (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT);
+			$allow_default = ($is_checkout_request || (function_exists('is_checkout') && is_checkout()) || (function_exists('is_cart') && is_cart())) && (!defined('WOOCOMMERCE_CHECKOUT') || !WOOCOMMERCE_CHECKOUT);
 
 			// On the cart or checkout, don't use a GeoIP lookup; don't allow use of the widget on the checkout
 			$vat_country = $this->get_preselect_country(false, $allow_from_widget_or_request, $allow_from_widget_or_request, true, $allow_default);
@@ -275,6 +278,7 @@ class WC_VAT_Compliance_Preselect_Country {
 			if (!empty($vat_country) && $country != $vat_country) {
 				return array($vat_country, $vat_state, '', '');
 			}
+			
 			return $address;
 		}
 
@@ -284,7 +288,7 @@ class WC_VAT_Compliance_Preselect_Country {
 		if (!empty($vat_country) && $country != $vat_country) {
 			return array($vat_country, $vat_state, '', '');
 		}
-
+		
 		return $address;
 
 	}

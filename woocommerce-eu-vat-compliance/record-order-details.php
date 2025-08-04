@@ -275,7 +275,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 
 		$order->update_meta_data('wceuvat_conversion_rates', $conversion_rates);
 		
-		$order->save();
+		$order->save_meta_data();
 		
 		return $conversion_rates;
 	}
@@ -336,7 +336,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 
 		if ($save_in_order) {
 			$order->update_meta_data('vat_compliance_vat_paid', $vat_paid);
-			$order->save();
+			$order->save_meta_data();
 		}
 			
 		return $vat_paid;
@@ -397,7 +397,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 				if (!empty($country_info) && is_array($country_info)) {
 					
 					$order->update_meta_data('vat_compliance_country_info', apply_filters('wc_eu_vat_compliance_meta_country_info', $country_info, $order));
-					$order->save();
+					$order->save_meta_data();
 					
 					echo ' '.__("The following information is based upon looking up the customer's IP address now.", 'woocommerce-eu-vat-compliance');
 				}
@@ -615,7 +615,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 			} elseif ($vat_number && 'false' === $valid_vat_number) {
 				$status = __('entered, but invalid', 'woocommerce-eu-vat-compliance');
 				// translators: a status message and a VAT number
-				echo '<p><strong>'.sprintf(esc_html__('VAT number (%1$s): %1$s', 'woocommerce-eu-vat-compliance'), $status, '</strong>'.$vat_number)."</p>\n";
+				echo '<p><strong>'.sprintf(esc_html__('VAT number (%1$s): %2$s', 'woocommerce-eu-vat-compliance'), $status, '</strong>'.$vat_number)."</p>\n";
 			}
 
 			$vies_full_result = $order->get_meta('VIES Response', true);
