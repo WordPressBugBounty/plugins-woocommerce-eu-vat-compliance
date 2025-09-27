@@ -244,7 +244,7 @@ class WC_EU_VAT_Compliance {
 	/**
 	 * Update customer VAT location for update tax
 	 *
-	 * @param WC_Customer     $customer Customer object.
+	 * @param WC_Customer $customer Customer object.
 	 */
 	public function update_customer_vat_location(\WC_Customer $customer) {
 		
@@ -310,15 +310,18 @@ class WC_EU_VAT_Compliance {
 		if (!empty($vat_number) && $vat_controller) {
 			$check_result = $vat_controller->check_vat_number_validity($country, $vat_number, false, true);
 		}
+		
 		if (!isset($check_result) || empty($check_result['vat_number_accepted'])) {
-			$vat_number = null;
-			// Do not store invalid VAT numbers in the session
-			$this->wc->session->set('vat_number', null);
+			if ('yes' != get_option('woocommerce_eu_vat_compliance_store_invalid_numbers')) {
+				$vat_number = null;
+				// Do not store invalid VAT numbers in the session
+				$this->wc->session->set('vat_number', null);
+			}
 		}
 
 		$form_data['vat_number'] = $vat_number;
 
-		// Set method in POST for checking it is it local pickup or not in set_session_country_from_form method in vat_class class.
+		// Set method in POST for checking it is it local pickup or not in set_session_country_from_form method in vat_controller class.
 		$_POST['shipping_method'] = $this->wc->session->get('chosen_shipping_methods');
 
 		// To match post_data in shortcode based checkout which is parsed in ajax_update_checkout_totals method in vat_class class.

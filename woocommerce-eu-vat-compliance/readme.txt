@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 5.3
 Tested up to: 6.8
-Stable tag: 1.35.5
+Stable tag: 1.36.0
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -129,6 +129,25 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.36.0 - 2025-09-27 =
+
+* FIX: The block-based checkout did not apply the "Store non-valid numbers" setting allowing invalid VAT numbers to be recorded in the order (but not deduct taxes)
+* TWEAK: Add parameters to the wp_ajax_wceuvat_vatnumber_response filter
+
+= 1.35.8 - 2025-09-26 =
+
+* TWEAK: Remove a redundant code section when verifying a VAT number, and add annotations
+* TWEAK: Reverse the order in which the "Store non-valid numbers" and "Require non-empty company field" are shown in the settings, and improve the descriptive text
+
+= 1.35.7 - 2025-09-24 =
+
+* TWEAK: Replace the deprecated wpo_wcpdf_shop_address_settings_text filter when wpo_wcpdf_get_shop_address is available
+* TWEAK: Add filter wc_vat_compliance_add_footer_with_all_zero_rated to allow suppression of invoice filter in the case of a valid VAT number and only zero-rated line items when the number is deemed not to be the reason for no VAT
+
+= 1.35.6 - 2025-08-12 =
+
+* TWEAK: When processing a subscription renewal, or when pre-filling the block checkout field, if the VAT number was stored with a double-prefix, then fix it
 
 = 1.35.5 - 2025-08-04 =
 
@@ -1780,4 +1799,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.35.5 - Update VAT rates. N.B. Since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
+* 1.36.0 - Implement the "Store non-valid numbers" setting on the block-based checkout. N.B. Since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
