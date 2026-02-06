@@ -1,5 +1,5 @@
 {
-    "last_updated": "2025-08-04T12:00:00Z",
+    "last_updated": "2026-01-21T12:00:00Z",
     "disclaimer": "This data is compiled from official European Commission sources to be as accurate as possible, however no guarantee of accuracy is provided. Use at your own risk. Don't trust random people on the internet without doing your own research.",
     "rates": {
         "AT": {
@@ -100,7 +100,8 @@
             "country": "Finland",
             "standard_rate": 25.50,
             "standard_rate_by_time": { "0": 24.00, "1725145200": 25.50 },
-            "reduced_rate": 14.00,
+            "reduced_rate": 13.50,
+	    "reduced_rate_by_time": { "0": 14.00, "1767222000": 13.50 },
             "reduced_rate_alt": 10.00,
             "super_reduced_rate": false,
             "parking_rate": false

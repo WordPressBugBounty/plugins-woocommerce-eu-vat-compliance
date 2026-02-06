@@ -243,8 +243,9 @@ class WC_VAT_Compliance_Preselect_Country {
 		$is_rest_request = function_exists('wp_is_rest_endpoint') && wp_is_rest_endpoint();
 		
 		// A list of REST routes that are ones that we want to treat as being part of the checkout page
-		$is_checkout_rest = $is_rest_request && in_array($this->current_rest_route, array('/wc/store/v1/cart/update-customer', '/wc/store/v1/checkout'));
-		
+		// /wc/store/v1/cart/extensions added Jan 2026 because it is used with the request for updated checkout status upon updating the self-certify 
+		$is_checkout_rest = $is_rest_request && in_array($this->current_rest_route, array('/wc/store/v1/cart/update-customer', '/wc/store/v1/checkout', '/wc/store/v1/cart/extensions'));
+
 		// wc-ajax=ppc-create-order : call made by https://wordpress.org/plugins/woocommerce-paypal-payments/ ; on the back-end it uses the PayPal API to create an order, and returns the ID back to the front-end, which can then access a PayPal pop-up for that order. Thus it has to be treated as a checkout-context.
 		$is_checkout_request = $is_checkout_rest || (isset($_REQUEST['wc-ajax']) && in_array($_REQUEST['wc-ajax'], array('ppc-create-order')));
 		
@@ -549,7 +550,7 @@ ENDHERE;
 
 				$this->preselect_route = 'request_variable';
 				$this->preselect_result = $req_country;
-				
+
 				return $req_country;
 			}
 		}
@@ -568,6 +569,7 @@ ENDHERE;
 		if ($allow_from_session) {
 			// Something already set in the session (via the checkout)?
 			$session_country = isset($this->compliance->wc->session) ? $this->compliance->wc->session->get('vat_country_checkout') : '';
+			
 			// $vat_state = $this->compliance->wc->session->get('eu_vat_state_checkout');
 
 			if ('none' == $session_country || ($session_country && isset($countries[$session_country]))) {

@@ -1,8 +1,8 @@
 === European VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
 Requires at least: 5.3
-Tested up to: 6.8
-Stable tag: 1.36.0
+Tested up to: 6.9
+Stable tag: 1.36.6
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -126,9 +126,37 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 
 = I want to make everyone pay the same prices, regardless of VAT =
 
-This is not strictly an EU/UK VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
+This is not strictly a VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.36.6 - 2026-01-24 =
+
+* TWEAK: Update reduced rate for Finland in bundled fallback rates (used if online rates can't be fetched)
+
+= 1.36.5 - 2026-01-17 =
+
+* TWEAK: Add a filter woocommerce_vat_report_include_orders_without_vat allowing shop owners to display in the summary report countries which had purchases but which had no VAT (for which, of course, the total amounts will all be zero; and since by definition there can be no country that the non-tax is payable to, the country used is the customer's taxable address).
+
+= 1.36.4 - 2026-01-12 =
+
+* FIX: Order display summary failing to update on block checkout when changing VAT self-certify status
+
+= 1.36.3 - 2026-01-07 =
+
+* TWEAK: Amend the filter introduced in 1.36.2 to be case-insensitive. 
+
+= 1.36.2 - 2026-01-01 =
+
+* TWEAK: Add a filter wc_vat_compliance_require_country_code, allowing store owners who wish to force customers to explicitly include a country code (rather than have it handled/added implicitly) to do so
+
+= 1.36.1 - 2025-10-27 =
+
+* FIX: On the shortcode checkout, if a partial (only some classes) tax exemption is operative, then any fees added using the WC Fees API are checked for possible exemption
+* TWEAK: Do not call deprecated no-op resource-freeing functions after PHP 7
+* TWEAK: Replaced type-casting variants which are deprecated on PHP 8.5
+* TWEAK: Correct placement of plugin version in settings export file
+* TWEAK: Settings export file now contains WooCommerce tax tables
 
 = 1.36.0 - 2025-09-27 =
 
@@ -1799,4 +1827,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.36.0 - Implement the "Store non-valid numbers" setting on the block-based checkout. N.B. Since 1.32.1, the Premium version now uses version 2.0 of the HMRC (UK) VAT number lookup service, which is the only version available from January - if you are using it, you must go into the plugin settings and go through the authentication procedure. Other minor tweaks and improvements. A recommended update for all.
+* 1.36.6 - Update reduced rate for Finland in bundled fallback rates (used if online rates can't be fetched). A recommended update for all.

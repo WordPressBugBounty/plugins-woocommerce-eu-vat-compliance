@@ -80,7 +80,7 @@ class WC_VAT_Compliance_Reports_UI {
 
 		$this->report_table_header();
 		
-		$country_mode = empty($_REQUEST['country_mode']) ? 'reporting' : $_REQUEST['country_mode'];
+		$country_mode = empty($_REQUEST['country_mode']) ? 'reporting' : stripslashes($_REQUEST['country_mode']);
 		if ('taxation' != $country_mode) $country_mode = 'reporting';
 		
 		// $tabulated_results[$order_status][$tabulation_country][$order_reporting_currency][$rate_key]['vat'] = ...
@@ -88,8 +88,7 @@ class WC_VAT_Compliance_Reports_UI {
 
 		$eu_total = 0;
 
-		$countries = $compliance->wc->countries;
-		$all_countries = $countries->countries;
+		$all_countries = $compliance->wc->countries->countries;
 
 		$reporting_currency_symbols = array();
 		$reporting_currency_symbols[$this->reporting_currency] = get_woocommerce_currency_symbol($this->reporting_currency);
@@ -153,7 +152,7 @@ class WC_VAT_Compliance_Reports_UI {
 							$vat_rate = (float)$rate_key;
 						}
 						
-						if (0 == $vat_rate) continue;
+						if (0 == $vat_rate && !apply_filters('woocommerce_vat_report_include_orders_without_vat', false)) continue;
 
 						if (!isset($reporting_currency_symbols[$reporting_currency])) 
 						$reporting_currency_symbols[$reporting_currency] = get_woocommerce_currency_symbol($reporting_currency);
@@ -164,7 +163,7 @@ class WC_VAT_Compliance_Reports_UI {
 						$extra_col_refunds = '<td class="wceuvat_refundsdata">'.$reporting_currency_symbol.' '.$this->format_amount($vat_refund_amount).'</td>';
 
 						// $vat_rate is known to be non-zero; 
-						$vatable_supplies = 100 * $vat_total_amount / $vat_rate;
+						$vatable_supplies = $vat_rate != 0 ? 100 * $vat_total_amount / $vat_rate : 0;
 						$total_vatable_supplies[$reporting_currency] += $vatable_supplies;
 						
 						// This chunk is just to see whether it'd potentially be easier to use the 'items' amount instead of the calculated one

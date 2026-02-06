@@ -140,7 +140,7 @@ class nusoap_xmlschema extends nusoap_base  {
 				$this->setError($errstr);
 	    	}
             
-			xml_parser_free($this->parser);
+			if (PHP_MAJOR_VERSION < 8) xml_parser_free($this->parser);
 		} else{
 			$this->debug('no xml passed to parseString()!!');
 			$this->setError('no xml passed to parseString()!!');

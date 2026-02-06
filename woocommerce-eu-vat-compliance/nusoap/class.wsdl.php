@@ -292,7 +292,7 @@ class wsdl extends nusoap_base {
         }
         if (function_exists('set_transient')) set_transient($transient_key, $wsdl_string, 900);
 		// free the parser
-        xml_parser_free($this->parser);
+        if (PHP_MAJOR_VERSION < 8) xml_parser_free($this->parser);
         $this->debug('Parsing WSDL done');
 		// catch wsdl parse errors
 		if($this->getError()){

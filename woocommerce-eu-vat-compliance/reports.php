@@ -101,7 +101,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 					continue;
 				}
 				foreach ($status_results as $country_code => $country_results) {
-					if (!in_array($country_code, $region_country_codes)) {
+					if (!apply_filters('woocommerce_vat_report_include_orders_without_vat', false) && !in_array($country_code, $region_country_codes)) {
 						unset($status_results[$country_code]);
 						$month_results[$status] = $status_results;
 					}
@@ -137,7 +137,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 			}
 			
 		}
-		
+
 		// Though it can be used until then, hopefully 
 		set_transient($transient_key, array('end' => $end, 'results' => $results), 86400);
 		
@@ -806,7 +806,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 		// Legacy filter (deprecated May 2023 with the addition of HPOS support)
 		$add_from_filter = apply_filters('wc_eu_vat_compliance_report_meta_fields', '', $print_as_csv);
 		
-		// New filter to use instead of wc_eu_vat_compliance_report_meta_fields. N.B. The fields should be name according to the post naming convention (not HPOS column names)
+		// New filter to use instead of wc_eu_vat_compliance_report_meta_fields. N.B. The fields should be named according to the post naming convention (not HPOS column names)
 		$tax_extra_fields = apply_filters('wc_eu_vat_compliance_report_extra_meta_fields', $tax_extra_fields, $print_as_csv);
 		
 		if ('' !== $add_from_filter) {
@@ -994,7 +994,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 				}
 			}
 		}
-
+		
 		/* Interesting keys:
 			_order_currency
 			_order_shipping_tax
@@ -1043,7 +1043,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 
 		$compliance = WooCommerce_EU_VAT_Compliance();
 		
-		$results = $this->get_report_results($start_date, $end_date);
+		$results = $this->get_report_results($start_date, $end_date, !apply_filters('woocommerce_vat_report_include_orders_without_vat', false));
 
 		// Further processing. Need to do currency conversions and index the results by country
 		$tabulated_results = array();
@@ -1110,7 +1110,6 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 		}
 		
 		// Then, we need to filter the refunds that are checked in the next loop, below
-		
 		foreach ($results as $order_status => $result_set) {
 
 			// This returns an array of arrays; keys = order IDs; second key = tax rate IDs, values = total amount of orders taxed at these rates
@@ -1159,7 +1158,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 
 					$vat_country = empty($cinfo['taxable_address']) ? '??' : $cinfo['taxable_address'];
 					if (!empty($vat_country[0])) {
-						if (in_array($vat_country[0], $reporting_countries)) {
+						if (apply_filters('woocommerce_vat_report_include_orders_without_vat', false) || in_array($vat_country[0], $reporting_countries)) {
 							$result_set[$order_id]['taxable_country'] = $vat_country[0];
 						}
 					}
@@ -1199,7 +1198,26 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 				$vat_paid = $order_info_converted['vat_paid'];
 
 				$by_rate = array();
+				
+				// This was added by request (Jan 2026) to include in the summary report countries with no VAT payable. If there is no VAT payable then the country is treated as the taxation country of the customer (since there can by definition be no reporting country in this situation).
+				$report_no_vat_orders = apply_filters('woocommerce_vat_report_include_orders_without_vat', false);
+				
 				if (isset($vat_paid['by_rates'])) {
+					
+					if ($report_no_vat_orders && empty($vat_paid['by_rates'])) {
+						$vat_paid['by_rates'] = array(
+							array(
+								'rate' => 0,
+								'is_variable_eu_vat' => false,
+								'items_total' => 0,
+								'shipping_total' => 0,
+								'tabulation_country' => $taxable_country,
+								'name' => __('No tax', 'woocommmerce-eu-vat-compliance'),
+							),
+						);
+						
+					}
+					
 					foreach ($vat_paid['by_rates'] as $tax_rate_id => $rate_info) {
 
 						// The country where the tax is payable
@@ -1209,8 +1227,11 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 						$rate_key = $rate;
 						// !isset implies 'legacy - data produced before the plugin set this field: assume it is variable, because at that point the plugin did not officially support mixed shops with non-variable VAT'
 						if (!isset($rate_info['is_variable_eu_vat']) || !empty($rate_info['is_variable_eu_vat'])) {
-							// Variable VAT
+							// Variable VAT	
 							$rate_key = 'V-'.$rate_key;
+						} elseif (isset($rate_info['tabulation_country'])) {
+							// The only situation in which we expect this to be set is when the shop owner has customised reports by using the filter to set $report_no_vat_orders to true. Note that in this case, there is no real "reporting country" because there is no tax, and so the tax cannot be classified as either a place-of-supply tax or non-place-of-supply tax
+							$tabulation_country = $rate_info['tabulation_country'];
 						} elseif ('reporting' == $country_of_interest) {
 							// Non-variable VAT: should be attribute to the base country, for reporting purposes, unless keying by taxation country was requested
 							// We started to record the order-time base country from 1.14.25. If it's not there, we assume it is the current shop base country (changing will be rare).
@@ -1290,6 +1311,7 @@ class WC_EU_VAT_Compliance_Reports extends WC_VAT_Compliance_Reports_UI {
 				}
 
 			}
+			
 		}
 		
 		return $tabulated_results;

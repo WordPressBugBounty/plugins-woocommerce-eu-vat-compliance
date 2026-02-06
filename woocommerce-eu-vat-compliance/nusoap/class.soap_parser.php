@@ -1,8 +1,4 @@
 <?php
-
-
-
-
 /**
 *
 * nusoap_parser class parses SOAP XML messages into native PHP values
@@ -138,7 +134,7 @@ class nusoap_parser extends nusoap_base {
 					}
 				}
 			}
-			xml_parser_free($this->parser);
+			if (PHP_MAJOR_VERSION < 8) xml_parser_free($this->parser);
 		} else {
 			$this->debug('xml was empty, didn\'t parse!');
 			$this->setError('xml was empty, didn\'t parse!');
@@ -492,13 +488,13 @@ class nusoap_parser extends nusoap_base {
 			return (int) $value;
 		}
 		if ($type == 'float' || $type == 'double' || $type == 'decimal') {
-			return (double) $value;
+			return (float) $value;
 		}
 		if ($type == 'boolean') {
 			if (strtolower($value) == 'false' || strtolower($value) == 'f') {
 				return false;
 			}
-			return (boolean) $value;
+			return (bool) $value;
 		}
 		if ($type == 'base64' || $type == 'base64Binary') {
 			$this->debug('Decode base64 value');

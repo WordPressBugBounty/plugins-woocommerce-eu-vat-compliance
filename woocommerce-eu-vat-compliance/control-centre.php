@@ -347,6 +347,17 @@ class WC_EU_VAT_Compliance_Control_Centre {
 			
 			$options['woocommerce_base_country'] = WC()->countries->get_base_country();
 			
+			global $wpdb, $table_prefix;
+			
+			$options['woocommerce_tax_rate_classes'] = $wpdb->get_results("SELECT * FROM {$wpdb->wc_tax_rate_classes} ORDER BY name", ARRAY_A);
+
+			$tax_rates = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_tax_rates", OBJECT);
+			foreach ($tax_rates as $tax_rate) {
+				$tax_rate_id = $tax_rate->tax_rate_id;
+				unset($tax_rate->tax_rate_id);
+				$options['woocommerce_tax_rates'][$tax_rate_id] = (array) $tax_rate;
+			}
+			
 			$results = array(
 				'options' => $options,
 				'versions' => array(
@@ -361,7 +372,7 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				),
 			);
 			
-			if (!empty($plugin_version)) $results['versions']['wc_eu_vat_compliance'] = $plugin_version;
+			if (!empty($plugin_version)) $results['versions']['wc_vat_compliance'] = $plugin_version;
 			
 			echo json_encode($results);
 		}
