@@ -224,33 +224,33 @@ class WC_EU_VAT_Compliance_Control_Centre {
 				$value = null;
 
 				switch ($setting['type']) {
-					case 'text';
-					case 'number';
-					case 'radio';
-					case 'select';
-					case 'multi_select_countries';
-					case 'wceuvat_store_vat_number';
-					case 'wcvat_vat_number_entry_overrides';
-					case 'wcvat_tax_class_translations';
+					case 'text':
+					case 'number':
+					case 'radio':
+					case 'select':
+					case 'multi_select_countries':
+					case 'wceuvat_store_vat_number':
+					case 'wcvat_vat_number_entry_overrides':
+					case 'wcvat_tax_class_translations':
 					$value = $posted_settings[$setting['id']];
 					break;
-					case 'multiselect';
+					case 'multiselect':
 					$value = $posted_settings[$setting['id']];
 					if ('' === $value) $value = array();
 					break;
-					case 'wcvat_tax_classes';
-					case 'wc_vat_regions';
-					case 'wc_vat_forbid_vatable_checkout';
-					case 'wc_vat_exempt_tax_classes';
+					case 'wcvat_tax_classes':
+					case 'wc_vat_regions':
+					case 'wc_vat_forbid_vatable_checkout':
+					case 'wc_vat_exempt_tax_classes':
 					$value = array_diff($posted_settings[$setting['id']], array('0'));
 					break;
-					case 'textarea';
+					case 'textarea':
 					$value = wp_kses_post(trim($posted_settings[$setting['id']]));
 					break;
-					case 'checkbox';
+					case 'checkbox':
 					$value = empty($posted_settings[$setting['id']]) ? 'no' : 'yes';
 					break;
-					default;
+					default:
 					error_log("Setting type not recognised/supported: ".$setting['type']);
 				}
 

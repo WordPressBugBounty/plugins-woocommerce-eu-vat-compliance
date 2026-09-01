@@ -1,8 +1,8 @@
 === European VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
 Requires at least: 5.3
-Tested up to: 6.9
-Stable tag: 1.36.6
+Tested up to: 7.0
+Stable tag: 1.36.10
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -129,6 +129,25 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly a VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.36.10 - 2026-09-01 =
+
+* FIX: If editing an order, allow removing of the VAT number via the billing address; hide it from the 'Custom Fields' section to avoid the potential for conflicting updates
+* FIX: On the block checkout, pre-populate the checkout VAT number field with the value stored in the user's account
+* TWEAK: Replace use of case statement with semi-colons deprecated in PHP 8.5
+* TWEAK: Provide a filter woocommerce_vat_compliance_get_price_suffix to make filtering of price suffixes easier for developers
+
+= 1.36.9 - 2026-07-27 =
+
+* FIX: Rectify incorrect fix in 1.36.8
+
+= 1.36.8 - 2026-07-24 =
+
+* FIX: Register blocks upon the woocommerce_blocks_loaded action, to prevent a race condition
+
+= 1.36.7 - 2026-02-26 =
+
+* TWEAK: The label in WooCommerce order emails should be processed by gettext
 
 = 1.36.6 - 2026-01-24 =
 
@@ -1827,4 +1846,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.36.6 - Update reduced rate for Finland in bundled fallback rates (used if online rates can't be fetched). A recommended update for all.
+* 1.36.10 - A couple of small fixes and tweaks. A recommended update for all.

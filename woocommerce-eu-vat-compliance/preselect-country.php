@@ -156,11 +156,13 @@ class WC_VAT_Compliance_Preselect_Country {
 	}
 
 	/**
+	 * This has been made public so that other users of the woocommerce_get_price_suffix filter can use it, if desired.
+	 *
 	 * @param Array $matches
 	 *
 	 * @return String
 	 */
-	private function price_display_replace_callback($matches) {
+	public function price_display_replace_callback($matches) {
 
 		if (empty($this->all_countries)) $this->all_countries = $this->compliance->wc->countries->countries;
 
@@ -196,7 +198,7 @@ class WC_VAT_Compliance_Preselect_Country {
 	 */
 	public function woocommerce_get_price_suffix($price_display_suffix, $product) {
 
-		if (('' !== $price_display_suffix || (is_a($product, 'WC_Product_Variable') && defined('WOOCOMMERCE_VAT_PARSE_SUFFIXES_ALSO_WHEN_VARIABLE') && WOOCOMMERCE_VAT_PARSE_SUFFIXES_ALSO_WHEN_VARIABLE && '' != ($price_display_suffix = get_option('woocommerce_price_display_suffix')))) && preg_match('#\{iftax\}(.*)\{\/iftax\}#', $price_display_suffix, $matches)) {
+		if (('' !== $price_display_suffix || (is_a($product, 'WC_Product_Variable') && defined('WOOCOMMERCE_VAT_PARSE_SUFFIXES_ALSO_WHEN_VARIABLE') && WOOCOMMERCE_VAT_PARSE_SUFFIXES_ALSO_WHEN_VARIABLE && '' != ($price_display_suffix = get_option('woocommerce_price_display_suffix')))) && preg_match('#\{iftax\}(.*)\{\/iftax\}#', $price_display_suffix)) {
 
 			// Rounding is needed, otherwise you get an imprecise float (e.g. one can be d:14.199999999999999289457264239899814128875732421875, whilst the other is d:14.2017000000000006565414878423325717449188232421875)
 
@@ -204,12 +206,15 @@ class WC_VAT_Compliance_Preselect_Country {
 			$including_tax = round(wc_get_price_including_tax($product), $decimals);
 			$excluding_tax = round(wc_get_price_excluding_tax($product), $decimals);
 
+			$this->suffixing_product = $product;
+			
 			if ($including_tax != $excluding_tax) {
-				$this->suffixing_product = $product;
-				$price_display_suffix = preg_replace_callback( '#\{iftax\}(.*)\{\/iftax\}#', array($this, 'price_display_replace_callback'), $price_display_suffix );
+				$price_display_suffix = preg_replace_callback('#\{iftax\}(.*)\{\/iftax\}#', array($this, 'price_display_replace_callback'), $price_display_suffix);
 			} else {
-				$price_display_suffix = preg_replace( '#\{iftax\}(.*)\{\/iftax\}#', '', $price_display_suffix );
+				$price_display_suffix = preg_replace('#\{iftax\}(.*)\{\/iftax\}#', '', $price_display_suffix);
 			}
+			
+			$price_display_suffix = apply_filters('woocommerce_vat_compliance_get_price_suffix', $price_display_suffix, $product, $this);
 
 		}
 
