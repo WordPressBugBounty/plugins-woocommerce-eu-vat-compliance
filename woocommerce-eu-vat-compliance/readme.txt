@@ -1,8 +1,8 @@
 === European VAT Compliance Assistant for WooCommerce ===
 Contributors: DavidAnderson
 Requires at least: 5.3
-Tested up to: 7.0
-Stable tag: 1.36.10
+Tested up to: 7.1
+Stable tag: 1.36.11
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -129,6 +129,12 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly a VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.36.11 - 2026-09-11 =
+
+* SECURITY: On a site not using Cloudflare, a customer could place a malicious order that, when viewed in the WooCommerce dashboard order page, would execute attacker-chosen JavaScript within the browser (stored XSS/unescaped parameter). Thanks to Sebastian Albrecht for the responsible disclosure.
+* TWEAK: On processing the block checkout into an order, make sure that the VAT number check is not run twice, to avoid inconsistencies if there are different results (e.g. one network call fails)
+* TWEAK: Modify the message concerning no data recorded to include the possibility that another plugin crashed
 
 = 1.36.10 - 2026-09-01 =
 
@@ -1846,4 +1852,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.36.10 - A couple of small fixes and tweaks. A recommended update for all.
+* 1.36.11 - A fix for a stored XSS issue and couple of other small tweaks. A recommended update for all.

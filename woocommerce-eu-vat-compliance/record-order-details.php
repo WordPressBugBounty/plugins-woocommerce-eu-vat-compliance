@@ -364,12 +364,12 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 		echo '<p id="wc_eu_vat_compliance_countryinfo">';
 
 		if (empty($country_info) || !is_array($country_info)) {
-			echo '<em>'.__('No further information recorded', 'woocommerce-eu-vat-compliance');
+			echo '<em>'.esc_html__('No further information recorded', 'woocommerce-eu-vat-compliance');
 			
 			if ('admin' == $order->get_created_via()) {
-				echo ' ('.__('the order was manually created in the admin area', 'woocommerce-eu-vat-compliance').')';
+				echo ' ('.esc_html__('the order was manually created in the admin area', 'woocommerce-eu-vat-compliance').')';
 			} else {
-				echo ' ('.__('the WooCommerce VAT Compliance plugin was not active when this order was made, or the order was not placed at the site checkout.', 'woocommerce-eu-vat-compliance').')';
+				echo ' ('.esc_html__('the WooCommerce VAT Compliance plugin was not active when this order was made, or the order was not placed at the site checkout, or another component crashed and stopped execution before data could be recorded.', 'woocommerce-eu-vat-compliance').')';
 			}
 			
 			echo '</em>';
@@ -399,7 +399,7 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 					$order->update_meta_data('vat_compliance_country_info', apply_filters('wc_eu_vat_compliance_meta_country_info', $country_info, $order));
 					$order->save_meta_data();
 					
-					echo ' '.__("The following information is based upon looking up the customer's IP address now.", 'woocommerce-eu-vat-compliance');
+					echo ' '.esc_html__("The following information is based upon looking up the customer's IP address now.", 'woocommerce-eu-vat-compliance');
 				}
 			}
 		}
@@ -562,12 +562,12 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 				echo __('Items', 'woocommerce-eu-vat-compliance').': '.$items.'<br>';
 				echo __('Shipping', 'woocommerce-eu-vat-compliance').': '.$shipping."<br>\n";
 				if ($refunded_total_total) {
-					echo __('Net total', 'woocommerce-eu-vat-compliance').': '.$total.'<br>';
-					echo __('Refund total', 'woocommerce-eu-vat-compliance').': '.$compliance->get_amount_in_conversion_currencies($refunded_total_total*-1, $conversion_currencies, $conversion_rates, $order_currency).'<br>';
+					echo esc_html__('Net total', 'woocommerce-eu-vat-compliance').': '.$total.'<br>';
+					echo esc_html__('Refund total', 'woocommerce-eu-vat-compliance').': '.$compliance->get_amount_in_conversion_currencies($refunded_total_total*-1, $conversion_currencies, $conversion_rates, $order_currency).'<br>';
 					$grand_total = $total_total - $refunded_total_total;
-					echo __('Grand total', 'woocommerce-eu-vat-compliance').': '.$compliance->get_amount_in_conversion_currencies($grand_total, $conversion_currencies, $conversion_rates, $order_currency).'<br>'."\n";
+					echo esc_html__('Grand total', 'woocommerce-eu-vat-compliance').': '.$compliance->get_amount_in_conversion_currencies($grand_total, $conversion_currencies, $conversion_rates, $order_currency).'<br>'."\n";
 				} else {
-					echo __('Total', 'woocommerce-eu-vat-compliance').': '.$total.'<br>';
+					echo esc_html__('Total', 'woocommerce-eu-vat-compliance').': '.$total.'<br>';
 				}
 			}
 
@@ -725,20 +725,20 @@ class WC_EU_VAT_Compliance_Record_Order_Details {
 
 			$taxable_address = empty($country_info['taxable_address']) ?  __('Unknown', 'woocommerce-eu-vat-compliance') : $country_info['taxable_address'];
 
-			echo '<span title="'.esc_attr(print_r($taxable_address, true)).'">'.__("Customer's taxable address:", 'woocommerce-eu-vat-compliance').' ';
+			echo '<span title="'.esc_attr(print_r($taxable_address, true)).'">'.esc_html__("Customer's taxable address:", 'woocommerce-eu-vat-compliance').' ';
 
 			$calculated_country_code = empty($taxable_address[0]) ? __('Unknown', 'woocommerce-eu-vat-compliance') : $taxable_address[0];
 
 			$calculated_country_name = isset($countries[$calculated_country_code]) ? $countries[$calculated_country_code] : '??';
 
-			echo "$calculated_country_name ($calculated_country_code)";
+			echo esc_html($calculated_country_name)." (".esc_html($calculated_country_code).")";
 			
-			if (!empty($country_info['taxable_address_self_certified'])) echo ' ('.__('self-certified', 'woocommerce-eu-vat-compliance').')';
+			if (!empty($country_info['taxable_address_self_certified'])) echo ' ('.esc_html__('self-certified', 'woocommerce-eu-vat-compliance').')';
 
 			echo "</span>\n<br>\n";
 
-			echo __('IP Country:', 'woocommerce-eu-vat-compliance')." $country_name ($country_code)";
-			echo ' - <span title="'.esc_attr($source).'">'.__('source:', 'woocommerce-eu-vat-compliance')." ".htmlspecialchars($source_description)."</span><br>\n";
+			echo esc_html__('IP Country:', 'woocommerce-eu-vat-compliance')." ".esc_html($country_name)." (".esc_html($country_code).")";
+			echo ' - <span title="'.esc_attr($source).'">'.esc_html__('source:', 'woocommerce-eu-vat-compliance')." ".htmlspecialchars($source_description)."</span><br>\n";
 
 			echo '</span>'."\n";
 

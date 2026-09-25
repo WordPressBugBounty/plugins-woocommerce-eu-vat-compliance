@@ -1776,7 +1776,7 @@ Array
 		$ip = $this->get_visitor_ip_address();
 
 		// If Cloudflare has already done the work, return their result (which is probably more accurate). See: https://developers.cloudflare.com/support/network/configuring-ip-geolocation/
-		if (!empty($_SERVER['HTTP_CF_IPCOUNTRY']) && !in_array($_SERVER['HTTP_CF_IPCOUNTRY'], array('T1', 'XX'))) {
+		if (!empty($_SERVER['HTTP_CF_IPCOUNTRY']) && !in_array($_SERVER['HTTP_CF_IPCOUNTRY'], array('T1', 'XX')) && preg_match('/^[A-Z]+$/i', $_SERVER['HTTP_CF_IPCOUNTRY'])) {
 			$country_info = array(
 				'source' => 'HTTP_CF_IPCOUNTRY',
 				// April 2016 - saw a case of Cloudflare returning in lower-case, contrary to the ISO standard. Saw a changelog from Diego today that indicated he's seeing the same thing
