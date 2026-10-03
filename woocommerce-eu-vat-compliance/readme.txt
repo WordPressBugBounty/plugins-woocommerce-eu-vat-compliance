@@ -2,7 +2,7 @@
 Contributors: DavidAnderson
 Requires at least: 5.3
 Tested up to: 7.1
-Stable tag: 1.36.11
+Stable tag: 1.36.14
 Requires PHP: 7.1
 Tags: woocommerce, eu vat, vat compliance, iva, moss
 License: GPLv3+
@@ -129,6 +129,11 @@ There is a widget for this; so, look in your dashboard, in Appearance -> Widgets
 This is not strictly a VAT compliance issue, and as such, does not come under the strict remit of this plugin. (Suggestions that can be found on the Internet that charging different prices in difference countries breaks non-discrimination law have no basis in fact at the time of writing). However, WooCommerce does include *experimental* support for this (see: <a href="https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior">https://github.com/woocommerce/woocommerce/wiki/How-Taxes-Work-in-WooCommerce#prices-including-tax---experimental-behavior</a>), and so we have provided an option in the settings to tell WooCommerce to turn this on.</a>
 
 == Changelog ==
+
+= 1.36.14 - 2026-10-03 =
+
+* FIX: On the block checkout, restore VAT exemption state from the session, if present. This fixes a bug whereby an exemption could disappear if changing state of an unrelated part of the checkout (e.g. payment method).
+* TWEAK: Do not call curl_close() on PHP >= 8
 
 = 1.36.11 - 2026-09-11 =
 
@@ -1852,4 +1857,4 @@ directory due to licensing complications.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 == Upgrade Notice ==
-* 1.36.11 - A fix for a stored XSS issue and couple of other small tweaks. A recommended update for all.
+* 1.36.14 - Fix a block checkout issue, and avoid use of a deprecated function. A recommended update for all.
